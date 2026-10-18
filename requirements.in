@@ -1,0 +1,6 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+faster-whisper>=1.1,<2
+
+# faster-whisper 1.2.1 uses the metadata_errors argument removed in PyAV 17+.
+av>=11,<17
