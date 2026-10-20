@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Re-SAPO · Convertir archivos</title><link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/studio.css"><link rel="stylesheet" href="/static/converter.css">
+<script src="/static/converter.js" defer></script></head>
+<body><a class="skip" href="#convert-workspace">Saltar al convertidor</a><header class="header"><a href="/" class="brand"><span class="brand-logo">{{LOGO}}</span><span>Re-SAPO<small>DALE FORMA A TUS IDEAS.</small></span></a><nav aria-label="Navegación principal"><a href="/">Inicio</a><a href="/transcribir">Transcripción</a><a href="/pdf">PDF</a><a href="/vectorizar">Vectorizar</a></nav></header>
+<main><section class="convert-heading"><span class="eyebrow">ESTUDIO DE FORMATOS / 04</span><h1>El mismo contenido.<br><em>Nuevas posibilidades.</em></h1><p>Convierte audio, video, imágenes y texto a otro formato compatible.</p></section>
+<section id="convert-workspace" class="convert-workspace" aria-busy="false">
+<div class="convert-panel"><label for="convert-category">¿Qué tipo de archivo quieres convertir?</label><select id="convert-category" data-convert-lock><option value="audio">Audio</option><option value="video">Video</option><option value="image">Imágenes</option><option value="document">Documentos de texto</option></select>
+<label for="convert-input">Selecciona tu archivo</label><input id="convert-input" type="file" data-convert-lock>
+<p id="convert-selected">Ningún archivo seleccionado.</p><label for="convert-target">Formato de salida</label><select id="convert-target" disabled data-convert-lock></select>
+<p id="convert-document-note" hidden>Se convierte el texto, no el diseño original. DOCX y PDF pueden perder imágenes, estilos y distribución. No incluye OCR. Markdown se trata como texto.</p>
+<button id="convert-run" type="button" class="primary" disabled>Convertir archivo →</button>
+<p id="convert-status" role="status" aria-live="polite"></p><p id="convert-error" class="error" role="alert" hidden></p>
+<div id="convert-result" hidden><h2>Tu archivo está listo.</h2><a id="convert-download" class="primary" download>Descargar archivo convertido ↓</a><p id="convert-note"></p></div></div>
+<aside class="convert-aside"><h2>Un formato para tu siguiente paso.</h2><p id="convert-limits"></p><h3>Formatos de entrada</h3><p id="convert-formats"></p><hr><p><strong>Procesamiento en el servidor.</strong> Los temporales se eliminan al terminar. Descarga el resultado antes de salir.</p><p>Una conversión a la vez, hasta 3 minutos de proceso y 50 MB de salida. Creamos una copia; el original no cambia.</p></aside>
+</section></main><footer><span class="footer-brand">Re-SAPO<span>Dale un repaso. Dale forma a tus ideas.</span></span><span>Convertidor de archivos · Edición gratuita</span></footer></body></html>

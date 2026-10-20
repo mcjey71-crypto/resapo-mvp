@@ -1,6 +1,6 @@
 # Re-SAPO
 
-**Dale un repaso. Dale forma a tus ideas.** Un estudio con transcripción, herramientas PDF y vectorización de imágenes. La portada presenta el producto y permite ingresar sin correo ni contraseña. Este acceso es navegación, no autenticación.
+**Dale un repaso. Dale forma a tus ideas.** Un estudio con transcripción, herramientas PDF, vectorización de imágenes y conversión de archivos. La portada presenta el producto y permite ingresar sin correo ni contraseña. Este acceso es navegación, no autenticación.
 
 El propietario confirmó que la transcripción y los PDF funcionan en su despliegue de Streamlit. Consulta [HOSTING.md](HOSTING.md) para actualizarlo y entender sus costos y límites. Para usar las herramientas locales por separado están `docs/index.html` (PDF) y `docs/vectorizar.html` (imagen a SVG), con ejemplos incluidos.
 
@@ -19,7 +19,7 @@ bash scripts/start.sh
 
 El servidor escucha en el puerto 8000 de la máquina. Abre la aplicación mediante el acceso a ese servidor que proporcione tu entorno. Abrir `web/index.html` directamente no inicia el motor de transcripción.
 
-Rutas: `/` portada, `/transcribir` audio/video, `/pdf` documentos y `/vectorizar` imágenes. Streamlit presenta las mismas tres áreas después de **Ingresar al estudio**.
+Rutas: `/` portada, `/transcribir` audio/video, `/pdf` documentos, `/vectorizar` imágenes y `/convertir` conversión de archivos. Streamlit presenta las cuatro herramientas después de **Ingresar al estudio**.
 
 La instalación usa versiones fijas y hashes en `requirements-dev.txt`. Descarga Whisper `base` multilingüe una vez (~145 MB), verifica su SHA-256 y ejecuta las pruebas de servicio. La caché de pesos queda en `.cache/models/`. Los procesos deben iniciarse de nuevo en cada sesión.
 
@@ -41,7 +41,7 @@ En una red restringida, permite `huggingface.co`, `cas-server.xethub.hf.co`, `ca
 3. Transcribir y consultar el estado real del trabajo. El avance de subida se mide por bytes; el de reconocimiento, por la posición de los segmentos. La preparación y las esperas usan un indicador sin porcentaje inventado.
 4. Revisar y editar el texto, copiarlo o descargarlo como `.txt`.
 
-No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. La sección **Herramientas PDF**, disponible en `/pdf`, permite unir, dividir, extraer, eliminar, ordenar/girar páginas y convertir imágenes a PDF. **Vectorizar imágenes**, en `/vectorizar`, transforma PNG/JPG/WebP en SVG con trazados reales. PDF e imágenes se procesan localmente en el navegador. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
+No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. La sección **Herramientas PDF**, disponible en `/pdf`, permite unir, dividir, extraer, eliminar, ordenar/girar páginas y convertir imágenes a PDF. **Vectorizar imágenes**, en `/vectorizar`, transforma PNG/JPG/WebP en SVG con trazados reales. Estas dos herramientas se procesan en el navegador. **Convertir archivos**, en `/convertir`, transforma audio, video, imágenes y documentos compatibles temporalmente en el servidor. Consulta [CONVERSIONS.md](CONVERSIONS.md) para formatos, límites y conservación del contenido. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
 
 ## Límites y datos de la transcripción
 
@@ -64,7 +64,7 @@ npm run build
 npm test
 ```
 
-El build genera la portada `web/landing.html`, `web/pdf.html`, `web/pdf-app.js`, `web/vector.html`, `web/vector-app.js` y los HTML autónomos `docs/index.html` y `docs/vectorizar.html`. Estos archivos compilados se incluyen en Git para que el despliegue de Python y los sitios estáticos no requieran Node en producción. Cada modificación a fuentes, estilos o plantillas debe acompañarse de un nuevo build.
+El build genera la portada `web/landing.html`, `web/converter.html`, `web/pdf.html`, `web/pdf-app.js`, `web/vector.html`, `web/vector-app.js` y los HTML autónomos `docs/index.html` y `docs/vectorizar.html`. Estos archivos compilados se incluyen en Git para que el despliegue de Python y los sitios estáticos no requieran Node en producción. Cada modificación a fuentes, estilos o plantillas debe acompañarse de un nuevo build.
 
 La portada comparte los fragmentos `web/intro-*.html` y `web/intro.css`. La presentación nativa de Streamlit está en `cloud/presentation.py` y `cloud/design.css`. Streamlit filtra las etiquetas SVG en `st.html`, por lo que allí se conservan como imágenes SVG en URI de datos; no se rasteriza el logo ni el arte.
 
@@ -81,6 +81,7 @@ npm test
 PDF_TEST_URL=http://127.0.0.1:8000/pdf .venv/bin/python tests/pdf_browser_check.py
 .venv/bin/python tests/vector_browser_check.py
 .venv/bin/python tests/studio_browser_check.py
+.venv/bin/python tests/converter_browser_check.py
 .venv/bin/python scripts/smoke_test.py ruta/a/una-clase.mp4 --language es
 ```
 
@@ -100,6 +101,9 @@ Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar l
 - `cloud/streamlit_app.py`: entrada para probar la app completa en Streamlit Community Cloud.
 - `src/pdf-*`: motor, interfaz y plantilla de las herramientas PDF.
 - `src/vector-*`: motor, worker, interfaz y plantilla de vectorización.
+- `conversion.py`, `scripts/convert_file.py`, `cloud/converter.py`: convertidor del servidor e interfaz Streamlit.
+- `CONVERSIONS.md`: matriz de formatos, límites y detalles de conversión.
+- `assets/fonts/`: fuente DejaVu para PDF y su licencia.
 - `docs/index.html`: aplicación PDF autónoma, sin backend.
 - `docs/vectorizar.html`: vectorizador autónomo, sin backend.
 - `HOSTING.md`: instrucciones de publicación y comparación de opciones gratuitas.

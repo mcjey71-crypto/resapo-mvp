@@ -2,7 +2,7 @@
 
 ## La opción recomendada: Streamlit Community Cloud
 
-Permite usar **transcripción, PDF y vectorización en una misma app**. El propietario ya confirmó que su despliegue de transcripción y PDF funciona. La portada da acceso mediante **Ingresar al estudio**, sin cuenta en esta edición. Los pasos siguientes sirven también para recrear el despliegue.
+Permite usar **transcripción, PDF, vectorización y conversión de archivos en una misma app**. El propietario ya confirmó que su despliegue de transcripción y PDF funciona. La portada da acceso mediante **Ingresar al estudio**, sin cuenta en esta edición. Los pasos siguientes sirven también para recrear el despliegue.
 
 1. Entra en <https://share.streamlit.io/> e inicia sesión con GitHub.
 2. Autoriza a Streamlit a leer `mcjey71-crypto/resapo-mvp` y elige **Create app / New app → Deploy a public app from GitHub** (el nombre del botón puede variar). La app puede compartirse aunque el código esté en un repositorio privado.
@@ -21,13 +21,13 @@ Permite usar **transcripción, PDF y vectorización en una misma app**. El propi
 
 La versión para alojamiento gratuito admite audio/video de **50 MB y 15 minutos** por archivo para moderar el uso de recursos. Los PDF conservan sus límites de 50 MB por archivo, 100 MB en total y 500 páginas. El reconocimiento se ejecuta en CPU y puede tardar; una instancia gratuita puede entrar en reposo o alcanzar los límites del servicio. No se han evaluado cargas de muchos usuarios concurrentes.
 
-La versión Streamlit se prueba localmente con Whisper real, PDF y vectorización. El propietario confirmó el despliegue original en Community Cloud; esa confirmación no sustituye una validación de cada nueva versión. No se necesitan credenciales en este chat.
+La versión Streamlit se prueba localmente con Whisper real, PDF, vectorización y conversión de archivos. El propietario confirmó el despliegue original en Community Cloud; esa confirmación no sustituye una validación de cada nueva versión. No se necesitan credenciales en este chat.
 
 ## Actualizaciones automáticas
 
 Streamlit sigue la rama **main** de este repositorio. Un cambio local no aparece en la app hasta hacer **commit y push** a esa rama. Al recibirlo, Streamlit actualiza la aplicación automáticamente. Si cambian las dependencias de Python o `packages.txt`, hace un despliegue completo y puede tardar más.
 
-Para modificar portada, PDF o vectorización:
+Para modificar portada, PDF, vectorización o la interfaz web del convertidor:
 
 ```bash
 npm ci --ignore-scripts
@@ -43,7 +43,8 @@ Fuente: [Streamlit: actualizar tu app desde GitHub](https://docs.streamlit.io/de
 
 - La app actual no cobra a sus visitantes. No hay pagos, cuentas, tarjetas ni una API de transcripción facturada por minuto.
 - Whisper corre en la CPU del alojamiento. Consume memoria, tiempo de proceso y capacidad del servidor compartido. En Community Cloud gratuito esto se traduce en límites, esperas, suspensión o falta de capacidad, no en un cobro implementado por Re-SAPO.
-- Los PDF y la vectorización usan el procesador y la memoria del dispositivo del visitante. Los archivos no se envían al backend de Re-SAPO.
+- Las herramientas PDF y la vectorización usan el procesador y la memoria del dispositivo del visitante. Los archivos no se envían al backend de Re-SAPO.
+- **Convertir archivos** también usa el servidor: no se cobra por conversión, pero consume CPU y memoria. Revisa sus formatos y límites en [CONVERSIONS.md](CONVERSIONS.md). Los archivos de esta sección sí se suben al servidor temporalmente.
 - Los créditos utilizados para desarrollar la app en un asistente de programación son independientes del uso de las herramientas publicadas.
 - Si en el futuro se contrata un servidor de pago o una API facturada, el titular de ese servicio asumiría esos cargos. Para vender acceso todavía faltan cuentas reales, pagos y cuotas verificadas en servidor; el botón **Ingresar** no aporta esas funciones.
 
@@ -100,3 +101,7 @@ bash scripts/start-streamlit.sh
 ```
 
 Esta entrada comparte el servicio de Whisper de `server.py`. La cola y el modelo se comparten entre sesiones; el texto editado vive en la sesión del usuario. No usa claves de API de terceros. Los controles de pago, cuentas y cuotas comerciales aún no están implementados.
+
+## Actualización del convertidor
+
+El convertidor añade Pillow, python-docx, pypdf y fpdf2 en los requirements con versiones y hashes fijados. La fuente PDF se incluye en `assets/fonts/`. FFmpeg ya está en `packages.txt`. Streamlit detectará el cambio de dependencias y puede tardar varios minutos en reinstalarlas; no hay que crear otro despliegue, añadir claves ni cambiar Python 3.12.

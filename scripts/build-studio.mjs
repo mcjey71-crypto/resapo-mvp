@@ -9,4 +9,5 @@ const html = `<!doctype html>
 <main id="intro"><section class="intro-static-hero"><div>${await file('intro-copy.html')}<a class="primary intro-cta" href="/transcribir">Ingresar al estudio <span>→</span></a><p class="intro-access-note">Empieza gratis. Sin correo, contraseña ni tarjeta.</p></div>${await file('intro-art.html')}</section>${await file('intro-details.html')}<a class="primary intro-cta" href="/transcribir">Ingresar al estudio <span>→</span></a><p class="intro-access-note">Tu siguiente idea empieza aquí.</p></main>
 <footer class="studio-footer"><div><strong>Re-SAPO</strong><br>Dale un repaso. Dale forma a tus ideas.</div><span>Edición gratuita · Sin registro<br>Hecho para dar el siguiente salto.</span></footer></body></html>`;
 await writeFile('web/landing.html', html);
+await writeFile('web/converter.html', (await readFile('src/converter-template.html', 'utf8')).replace('{{LOGO}}', await file('logo.svg')));
 console.log('Portada del estudio generada.');

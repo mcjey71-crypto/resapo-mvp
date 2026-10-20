@@ -28,7 +28,7 @@ with sync_playwright() as p:
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.get_by_role('button', name='Ingresar al estudio →').first.click()
     expect(page.get_by_role('heading', name='¿Qué idea movemos hoy?')).to_be_visible()
-    expect(page.get_by_role('tab')).to_have_count(3)
+    expect(page.get_by_role('tab')).to_have_count(4)
     page.screenshot(path=str(OUT / 'studio-mobile.png'))
     page.set_viewport_size({'width':1440, 'height':1100})
     page.get_by_role('tab', name='Vectorizar imágenes', exact=True).click()

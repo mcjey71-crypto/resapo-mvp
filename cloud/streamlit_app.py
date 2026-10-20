@@ -15,6 +15,7 @@ os.environ.setdefault('RESAPO_MAX_MINUTES', '15')
 import streamlit as st
 import streamlit.components.v1 as components
 from cloud.presentation import apply_design, header, landing, studio_intro, transcription_note, footer
+from cloud.converter import render_converter
 from server import EXTENSIONS, MAX_BYTES, MAX_SECONDS, Job, TranscriptionService, TERMINAL, model_location
 
 st.set_page_config(page_title='Re-SAPO · Dale forma a tus ideas', page_icon=str(ROOT / 'web/logo.svg'), layout='wide')
@@ -81,7 +82,7 @@ if not st.session_state.entered:
     st.stop()
 
 studio_intro()
-transcription_tab, pdf_tab, vector_tab = st.tabs(['Transcripción', 'Herramientas PDF', 'Vectorizar imágenes'])
+transcription_tab, pdf_tab, vector_tab, conversion_tab = st.tabs(['Transcripción', 'Herramientas PDF', 'Vectorizar imágenes', 'Convertir archivos'])
 with transcription_tab:
     st.html('<div class="transcription-heading"><span class="studio-kicker">ESTUDIO DE VOZ / 01</span>'
             '<h2>De lo que escuchas<br><em>a lo que puedes recordar.</em></h2>'
@@ -156,8 +157,10 @@ with pdf_tab:
     components.html(tool_page('index.html', (ROOT / 'docs/index.html').stat().st_mtime_ns), height=1450, scrolling=True)
 with vector_tab:
     components.html(tool_page('vectorizar.html', (ROOT / 'docs/vectorizar.html').stat().st_mtime_ns), height=1400, scrolling=True)
+with conversion_tab:
+    render_converter()
 with st.expander('Antes de empezar · uso, privacidad y límites'):
-    st.write('Esta edición es gratuita y no requiere cuenta. PDF y vectorización se procesan en tu navegador; no subimos esos archivos al servidor.')
+    st.write('Esta edición es gratuita y no requiere cuenta. Herramientas PDF y vectorización se procesan en tu navegador. Transcripción y Convertir archivos se procesan en el servidor; los archivos temporales se eliminan al terminar.')
     st.write(f'La transcripción admite {MAX_BYTES // 1024 // 1024} MB y {MAX_SECONDS // 60} minutos por archivo. Usa el servidor compartido: si está ocupado, espera unos minutos. No se te cobra por transcribir.')
     st.write('El audio se elimina al terminar el trabajo. El texto permanece temporalmente en la sesión; descárgalo antes de salir. Revisa los resultados automáticos antes de usarlos.')
 footer()

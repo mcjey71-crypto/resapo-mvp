@@ -16,8 +16,11 @@ import time
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
+from urllib.parse import quote
+from conversion import ConversionService, ConversionError, ConversionBusy, SOURCES, TARGETS, validate as validate_conversion
 
 ROOT = Path(__file__).parent
 MAX_BYTES = int(os.getenv("RESAPO_MAX_MB", "200")) * 1024 * 1024
@@ -30,6 +33,7 @@ EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac", ".mp4", ".mov", "
 LANGUAGES = {"auto", "es", "en", "pt", "fr", "it", "de"}
 TERMINAL = {"completed", "failed", "cancelled"}
 logger = logging.getLogger("resapo")
+converter = ConversionService()
 
 
 @dataclass
@@ -281,6 +285,42 @@ def cancel(job_id: str, request: Request):
 @app.get("/")
 def index():
     return FileResponse(ROOT / "web" / "landing.html")
+
+
+@app.get("/api/conversions/formats")
+def conversion_formats():
+    return {"sources": SOURCES, "targets": TARGETS}
+
+
+@app.post("/api/conversions")
+async def convert_file(request: Request, filename: str, target: str):
+    try:
+        validate_conversion(filename, 1, target)
+        with converter.reserve():
+            length = request.headers.get("content-length")
+            if length:
+                try:
+                    validate_conversion(filename, int(length), target)
+                except ValueError as error:
+                    raise HTTPException(413, str(error)) from None
+            data = bytearray()
+            async for chunk in request.stream():
+                validate_conversion(filename, len(data) + len(chunk), target)
+                data.extend(chunk)
+            result = await run_in_threadpool(converter.convert_reserved, filename, data, target)
+            return Response(result.data, media_type=result.mime, headers={
+                "Content-Disposition": f"attachment; filename=\"resapo.{target}\"; filename*=UTF-8''{quote(result.name)}",
+                "X-Conversion-Note": quote(result.note),
+            })
+    except ConversionBusy as error:
+        raise HTTPException(429, str(error), headers={"Retry-After": "15"}) from None
+    except ConversionError as error:
+        raise HTTPException(422, str(error)) from None
+
+
+@app.get("/convertir")
+def conversion_studio():
+    return FileResponse(ROOT / "web" / "converter.html")
 
 
 @app.get("/transcribir")

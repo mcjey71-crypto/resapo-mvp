@@ -5,4 +5,5 @@ docs/index.html linguist-generated=true whitespace=-blank-at-eol
 web/vector-app.js linguist-generated=true
 web/vector.html linguist-generated=true
 web/landing.html linguist-generated=true
+web/converter.html linguist-generated=true
 docs/vectorizar.html linguist-generated=true

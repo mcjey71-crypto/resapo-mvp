@@ -55,3 +55,19 @@ El usuario confirmó que transcripción y PDF funcionan en su despliegue de Stre
 Capturas: `test-results/studio/`, `test-results/vector-browser/`, `test-results/streamlit-transcription.png`. No se midió carga multiusuario ni precisión en fotos complejas; no se promete equivalencia con servicios comerciales de vectorización.
 
 El acceso HTTP desde este entorno a `resapo-mvp.streamlit.app` fue bloqueado por la política de red (`403` del túnel), antes de alcanzar la aplicación. Se añadió el destino al borrador del entorno para revisión; guardar ese borrador no demuestra que la regla esté aplicada. Las pruebas anteriores son locales. La actualización pública debe distinguirse del push de código y de estas pruebas.
+
+## Legibilidad y conversión de archivos — 20 de octubre de 2026 (Lima)
+
+- Tipografía ampliada en Streamlit, portada, PDF, vectorización y web principal. El navegador comprobó texto de descripción de al menos 16 px y notas de al menos 14 px. Capturas de escritorio y móvil sin desbordamiento horizontal.
+- **22 pruebas de conversión con motores reales**: MP4 a las seis salidas de audio; MP4/MKV/WebM con codecs comprobados por ffprobe; duración de audio más corta que el video; proporción de píxeles no cuadrados; JPG/WebP/BMP/TIFF/PNG con dimensiones y transparencia; imagen a PDF; TXT/PDF/DOCX con acentos y paginación; documentos cifrados o escaneados; animaciones; límites; exclusión mutua; plazo de ejecución y limpieza.
+- **16 pruebas de API**: las anteriores más la conversión real TXT a PDF, descarga sin caché, combinaciones inválidas, exclusión concurrente y recuperación tras error.
+- **19 pruebas Node** de PDF/vectorización siguen aprobadas.
+- `tests/converter_browser_check.py`: desde Streamlit se subió MP4 y descargó MP3, TXT y descargó PDF con texto verificado, y PNG y descargó JPG con dimensiones y fondo blanco comprobados. Cambiar el formato invalida la descarga anterior. La misma prueba sube texto al endpoint FastAPI y descarga un PDF legible.
+- `tests/streamlit_browser_check.py`: transcripción real de MP4 con Whisper, TXT descargable y PDF de seis páginas siguen funcionando con la cuarta pestaña presente.
+- Pruebas de navegador de portada, seis herramientas PDF, vectorización y transcripción FastAPI completadas. El reconocedor solo se simula en `tests/browser_check.py`, no en la prueba Streamlit.
+
+Se detectó y corrigió un caso real: un video puede durar más que su pista de audio. La validación de extracción compara la duración de la pista seleccionada, cuando está disponible, y no exige que el MP3 dure lo mismo que el video. También se ajustaron arenas de memoria y pila de los subprocesos para que FFmpeg pueda crear sus hilos bajo el límite de memoria sin reservar espacio virtual excesivo.
+
+La prueba automatizada espera a que termine cada rerun de Streamlit antes de abrir el menú de salida. Esto evita confundir el cierre normal de un menú durante un rerun con un fallo del convertidor.
+
+Capturas y descargas: `test-results/converter-browser/`. Se probaron codecs y documentos sintéticos/pequeños; no todos los archivos posibles, tiempos máximos de cada formato ni carga multiusuario. El convertidor es intencionalmente de formatos comunes, y la conversión de documentos es de texto, no de maquetación. No se afirma que acepte cualquier extensión existente.

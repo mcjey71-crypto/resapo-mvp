@@ -4,3 +4,9 @@ faster-whisper>=1.1,<2
 
 # faster-whisper 1.2.1 uses the metadata_errors argument removed in PyAV 17+.
 av>=11,<17
+
+# File conversion: static images, text documents and searchable PDFs.
+pillow>=11,<13
+python-docx>=1.2,<2
+fpdf2>=2.8,<3
+pypdf>=6,<7

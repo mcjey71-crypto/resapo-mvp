@@ -37,6 +37,28 @@ def client(monkeypatch):
         yield test_client
 
 
+def test_converter_api_real_pdf_and_incompatible_format(client):
+    from pypdf import PdfReader
+    result = client.post('/api/conversions', params={'filename': 'acción.txt', 'target': 'pdf'},
+                         content='Acción y corazón, en un PDF real.'.encode())
+    assert result.status_code == 200
+    assert result.headers['content-type'] == 'application/pdf'
+    assert result.headers['cache-control'] == 'no-store'
+    assert "filename*=UTF-8''" in result.headers['content-disposition']
+    assert 'corazón' in PdfReader(io.BytesIO(result.content)).pages[0].extract_text()
+    assert client.post('/api/conversions', params={'filename': 'x.mp3', 'target': 'pdf'}, content=b'x').status_code == 422
+    assert client.get('/convertir').status_code == 200
+
+
+def test_converter_api_releases_busy_slot_after_bad_upload(client):
+    with server.converter.reserve():
+        response = client.post('/api/conversions', params={'filename': 'x.txt', 'target': 'pdf'}, content=b'hello')
+        assert response.status_code == 429
+    response = client.post('/api/conversions', params={'filename': 'x.txt', 'target': 'pdf'}, content=b'')
+    assert response.status_code in (413, 422)
+    assert client.post('/api/conversions', params={'filename': 'x.txt', 'target': 'pdf'}, content=b'hello').status_code == 200
+
+
 def submit(client, data=None, filename='audio.wav', language='es'):
     return client.post('/api/transcriptions', params={'filename': filename, 'language': language},
                        content=audio_bytes() if data is None else data)
