@@ -37,3 +37,21 @@ La preparación actual está comprobada y la configuración reutilizable se guar
 - **Instalación repetida**: `scripts/setup.sh` reproduce npm/compilación/pruebas, dependencias Python y verificación del modelo. `scripts/setup-streamlit.sh` instala la entrada de Cloud por separado.
 
 La fuente de voz sigue siendo la muestra pública JFK; no se evaluó todavía precisión con clases en español, horas de contenido o múltiples usuarios. La evaluación PDF cubre documentos de muestra, imágenes y formularios sencillos, no todos los PDF existentes. La app completa está preparada para Streamlit Community Cloud, pero la publicación y el rendimiento en ese alojamiento no se han verificado. GitHub Pages no está activo y el repositorio permanece privado.
+
+## Estudio y vectorización — 20 de octubre de 2026 (Lima)
+
+El usuario confirmó que transcripción y PDF funcionan en su despliegue de Streamlit. La API de GitHub muestra ahora el repositorio público, rama `main`, y Pages desactivado; esta implementación no cambió la visibilidad.
+
+- `scripts/setup.sh` y `scripts/setup-streamlit.sh` ejecutados de nuevo: dependencias reproducibles, build completo y hash del modelo verificado.
+- **14 pruebas de API aprobadas**, sin cambios al motor de reconocimiento.
+- **19 pruebas Node aprobadas**: las 13 PDF y 6 de vectorización. Cubren SVG geométrico sin raster incrustado, preservación del original, blanco/negro, eliminación de blancos, huecos, límites de entrada al trazador, paleta determinista y conservación de un pequeño color de acento.
+- `tests/vector_browser_check.py`: worker y descargas reales en color y monocromo; PNG, JPEG y WebP; entrada inválida, corrupta y de más de 15 MB; nombre tratado como texto; arrastre, reducción proporcional a 1200 px, zoom, cancelación y reintento. SVG leído con un parser XML independiente. Se renderizó un SVG con hueco para comprobar alfa transparente/opaco en píxeles conocidos; también se comprobó que el amarillo del ejemplo conserva su color.
+- La misma prueba funciona sin conexión y sin POST/PUT, incluido el HTML autónomo que usa Streamlit. No se afirma haber probado `file://` en el navegador administrado.
+- `tests/studio_browser_check.py`: portada a 1440 y 390 px, logo e ilustraciones SVG descodificables, ambos botones de ingreso, ausencia de campos de credenciales, navegación de vuelta al inicio y vectorización/descarga desde el iframe real de Streamlit.
+- `tests/streamlit_browser_check.py`: nueva portada → ingreso → MP4 real → Whisper → edición/TXT; después PDF de seis páginas descargable. Motor real, sin simulaciones.
+- `tests/pdf_browser_check.py`: seis herramientas, contenidos comprobados con `pypdf`, móvil, cancelación y funcionamiento sin conexión siguen aprobados. `tests/browser_check.py`: interfaz FastAPI de transcripción aprobada con reconocedor explícitamente simulado.
+- `npm audit --omit=dev`: cero vulnerabilidades informadas para las dependencias runtime en esta consulta; no es una auditoría completa del producto.
+
+Capturas: `test-results/studio/`, `test-results/vector-browser/`, `test-results/streamlit-transcription.png`. No se midió carga multiusuario ni precisión en fotos complejas; no se promete equivalencia con servicios comerciales de vectorización.
+
+El acceso HTTP desde este entorno a `resapo-mvp.streamlit.app` fue bloqueado por la política de red (`403` del túnel), antes de alcanzar la aplicación. Se añadió el destino al borrador del entorno para revisión; guardar ese borrador no demuestra que la regla esté aplicada. Las pruebas anteriores son locales. La actualización pública debe distinguirse del push de código y de estas pruebas.

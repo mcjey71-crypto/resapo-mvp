@@ -12,8 +12,8 @@ await writeFile('web/pdf.html', html);
 // One self-contained file: downloadable, usable offline, and publishable with Pages.
 let portable = html
   .replace(/<link rel="icon"[^>]+>/, `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(logo)}" type="image/svg+xml">`)
-  .replace('<!-- SERVER-NAV --><a href="/">Transcribir</a><!-- /SERVER-NAV -->', '');
-for (const css of ['styles.css', 'pdf-styles.css']) {
+  .replace(/<!-- SERVER-NAV -->.*?<!-- \/SERVER-NAV -->/s, '');
+for (const css of ['styles.css', 'pdf-styles.css', 'studio.css']) {
   portable = portable.replace(`<link rel="stylesheet" href="/static/${css}">`, `<style>${await readFile(`web/${css}`, 'utf8')}</style>`);
 }
 const js = (await readFile('web/pdf-app.js', 'utf8')).replace(/<\/script/gi, '<\\/script');

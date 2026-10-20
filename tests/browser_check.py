@@ -19,7 +19,7 @@ with sync_playwright() as p:
         'ffmpeg': True, 'model_cached': True, 'max_bytes': 209715200, 'max_minutes': 60,
         'extensions': ['.wav', '.mp4', '.mp3'],
     }))
-    page.goto(BASE)
+    page.goto(BASE + '/transcribir')
     expect(page.locator('#system-text')).to_have_text('Listo para escuchar')
     expect(page.locator('#transcribe')).to_be_disabled()
     page.screenshot(path=str(ARTIFACTS / 'desktop.png'), full_page=True)

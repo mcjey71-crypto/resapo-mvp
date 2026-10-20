@@ -14,9 +14,10 @@ os.environ.setdefault('RESAPO_MAX_MINUTES', '15')
 
 import streamlit as st
 import streamlit.components.v1 as components
+from cloud.presentation import apply_design, header, landing, studio_intro, transcription_note, footer
 from server import EXTENSIONS, MAX_BYTES, MAX_SECONDS, Job, TranscriptionService, TERMINAL, model_location
 
-st.set_page_config(page_title='Re-SAPO · Transcripción y PDF', page_icon=str(ROOT / 'web/logo.svg'), layout='wide')
+st.set_page_config(page_title='Re-SAPO · Dale forma a tus ideas', page_icon=str(ROOT / 'web/logo.svg'), layout='wide')
 
 
 @st.cache_resource(show_spinner='Preparando el motor de voz. La primera vez puede tardar unos minutos…')
@@ -38,8 +39,8 @@ def engine():
 
 
 @st.cache_data
-def pdf_page(asset_version):
-    return (ROOT / 'docs/index.html').read_text()
+def tool_page(name, asset_version):
+    return (ROOT / 'docs' / name).read_text()
 
 
 def submit(service, upload, language):
@@ -69,80 +70,94 @@ def submit(service, upload, language):
             service.slots.release()
 
 
-for name, default in [('job_id', None), ('result', None), ('transcript', ''), ('output_name', 'transcripcion.txt'), ('notice', None)]:
+for name, default in [('job_id', None), ('result', None), ('transcript', ''), ('output_name', 'transcripcion.txt'), ('notice', None), ('entered', False)]:
     if name not in st.session_state:
         st.session_state[name] = default
 
-brand, title = st.columns([1, 12])
-with brand:
-    st.image(str(ROOT / 'web/logo.svg'), width=65)
-with title:
-    st.title('Re-SAPO')
-    st.caption('Tu voz por escrito. Tus documentos en orden.')
+apply_design()
+header(st.session_state.entered)
+if not st.session_state.entered:
+    landing()
+    st.stop()
 
-transcription_tab, pdf_tab = st.tabs(['Transcribir audio o video', 'Herramientas PDF'])
+studio_intro()
+transcription_tab, pdf_tab, vector_tab = st.tabs(['Transcripción', 'Herramientas PDF', 'Vectorizar imágenes'])
 with transcription_tab:
-    st.subheader('Tú escucha. El sapo toma nota.')
-    st.write('Convierte clases, entrevistas y videos en texto que puedes revisar y descargar.')
-    active = st.session_state.job_id is not None
-    upload = st.file_uploader('Elige tu audio o video', type=sorted(ext.lstrip('.') for ext in EXTENSIONS),
-                             disabled=active, help=f'Hasta {MAX_BYTES // 1024 // 1024} MB y {MAX_SECONDS // 60} minutos por archivo.')
-    languages = {'Español': 'es', 'Detectar automáticamente': 'auto', 'Inglés': 'en', 'Portugués': 'pt', 'Francés': 'fr', 'Italiano': 'it', 'Alemán': 'de'}
-    selected = st.selectbox('Idioma del audio', list(languages), disabled=active)
-    if st.button('Transcribir archivo', type='primary', disabled=active or upload is None):
-        try:
-            service = engine()
-            st.session_state.job_id = submit(service, upload, languages[selected])
-            st.session_state.result = None
-            st.session_state.transcript = ''
-            st.session_state.notice = None
-            st.session_state.output_name = Path(upload.name).stem + '-resapo.txt'
-            st.rerun()
-        except Exception as error:
-            st.error(str(error))
-    st.caption(f'En esta versión: {MAX_BYTES // 1024 // 1024} MB · {MAX_SECONDS // 60} minutos por archivo. El audio se procesa en el servidor y se elimina al terminar. Los PDF se procesan en tu navegador.')
+    st.html('<div class="transcription-heading"><span class="studio-kicker">ESTUDIO DE VOZ / 01</span>'
+            '<h2>De lo que escuchas<br><em>a lo que puedes recordar.</em></h2>'
+            '<p>Convierte tus audios y videos en texto. Revisa, edita y llévate tus ideas por escrito.</p></div>')
+    workspace, note = st.columns([2.1, 1], gap='large')
+    with note:
+        transcription_note()
+    with workspace:
+        active = st.session_state.job_id is not None
+        upload = st.file_uploader('Elige tu audio o video', type=sorted(ext.lstrip('.') for ext in EXTENSIONS),
+                                 disabled=active, help=f'Hasta {MAX_BYTES // 1024 // 1024} MB y {MAX_SECONDS // 60} minutos por archivo.')
+        languages = {'Español': 'es', 'Detectar automáticamente': 'auto', 'Inglés': 'en', 'Portugués': 'pt', 'Francés': 'fr', 'Italiano': 'it', 'Alemán': 'de'}
+        selected = st.selectbox('Idioma del audio', list(languages), disabled=active)
+        if st.button('Transcribir archivo', type='primary', disabled=active or upload is None):
+            try:
+                service = engine()
+                st.session_state.job_id = submit(service, upload, languages[selected])
+                st.session_state.result = None
+                st.session_state.transcript = ''
+                st.session_state.notice = None
+                st.session_state.output_name = Path(upload.name).stem + '-resapo.txt'
+                st.rerun()
+            except Exception as error:
+                st.error(str(error))
+        st.caption(f'En esta versión: {MAX_BYTES // 1024 // 1024} MB · {MAX_SECONDS // 60} minutos por archivo. El audio se procesa en el servidor y se elimina al terminar. Los PDF se procesan en tu navegador.')
 
-    @st.fragment(run_every=1 if active else None)
-    def progress():
-        if not st.session_state.job_id:
-            return
-        service = engine()
-        try:
-            job = service.get(st.session_state.job_id)
-        except Exception:
-            st.session_state.job_id = None
-            st.session_state.notice = ('error', 'El trabajo ya no está disponible. Vuelve a subir el archivo.')
-            st.rerun()
-        status = service.snapshot(job)
-        if status['state'] in TERMINAL:
-            st.session_state.job_id = None
-            if status['state'] == 'completed':
-                st.session_state.result = status
-                st.session_state.transcript = status['text']
-            else:
-                st.session_state.notice = ('error' if status['state'] == 'failed' else 'info', status['message'])
-            with service.lock:
-                service.jobs.pop(job.id, None)
-            st.rerun()
-        st.info(status['message'])
-        if status['progress']:
-            st.progress(status['progress'])
-        if st.button('Cancelar transcripción', disabled=job.cancel.is_set()):
-            job.cancel.set()
-            service.change(job, message='Cancelando…')
-            st.rerun(scope='fragment')
-    progress()
-    if st.session_state.notice:
-        kind, text = st.session_state.notice
-        (st.error if kind == 'error' else st.info)(text)
-    if st.session_state.result:
-        result = st.session_state.result
-        st.success(result['message'])
-        st.text_area('Tu transcripción — puedes editarla', key='transcript', height=280)
-        st.download_button('Descargar texto (.txt)', st.session_state.transcript,
-                           file_name=st.session_state.output_name, mime='text/plain; charset=utf-8',
-                           disabled=not st.session_state.transcript.strip())
-        st.caption('Descarga el texto antes de cerrar la sesión. Revisa nombres y datos importantes: la transcripción automática puede cometer errores.')
+        @st.fragment(run_every=1 if active else None)
+        def progress():
+            if not st.session_state.job_id:
+                return
+            service = engine()
+            try:
+                job = service.get(st.session_state.job_id)
+            except Exception:
+                st.session_state.job_id = None
+                st.session_state.notice = ('error', 'El trabajo ya no está disponible. Vuelve a subir el archivo.')
+                st.rerun()
+            status = service.snapshot(job)
+            if status['state'] in TERMINAL:
+                st.session_state.job_id = None
+                if status['state'] == 'completed':
+                    st.session_state.result = status
+                    st.session_state.transcript = status['text']
+                else:
+                    st.session_state.notice = ('error' if status['state'] == 'failed' else 'info', status['message'])
+                with service.lock:
+                    service.jobs.pop(job.id, None)
+                st.rerun()
+            st.info(status['message'])
+            if status['progress']:
+                st.progress(status['progress'])
+            if st.button('Cancelar transcripción', disabled=job.cancel.is_set()):
+                job.cancel.set()
+                service.change(job, message='Cancelando…')
+                st.rerun(scope='fragment')
+        progress()
+        if st.session_state.notice:
+            kind, text = st.session_state.notice
+            (st.error if kind == 'error' else st.info)(text)
+        if st.session_state.result:
+            result = st.session_state.result
+            st.success(result['message'])
+            st.text_area('Tu transcripción — puedes editarla', key='transcript', height=280)
+            st.download_button('Descargar texto (.txt)', st.session_state.transcript,
+                               file_name=st.session_state.output_name, mime='text/plain; charset=utf-8',
+                               disabled=not st.session_state.transcript.strip())
+            st.caption('Descarga el texto antes de cerrar la sesión. Revisa nombres y datos importantes: la transcripción automática puede cometer errores.')
+        elif not active:
+            st.html('<div class="studio-transcript-empty"><span aria-hidden="true">≋</span>'
+                    '<h3>Aquí aterrizan tus palabras.</h3><p>Sube un archivo y deja que Re-SAPO escuche.<br>Tu texto aparecerá aquí, listo para darle un repaso.</p></div>')
 with pdf_tab:
-    st.caption('Unir, dividir, extraer, eliminar, ordenar, girar e imágenes a PDF. Tus documentos no se suben al servidor.')
-    components.html(pdf_page((ROOT / 'docs/index.html').stat().st_mtime_ns), height=1300, scrolling=True)
+    components.html(tool_page('index.html', (ROOT / 'docs/index.html').stat().st_mtime_ns), height=1450, scrolling=True)
+with vector_tab:
+    components.html(tool_page('vectorizar.html', (ROOT / 'docs/vectorizar.html').stat().st_mtime_ns), height=1400, scrolling=True)
+with st.expander('Antes de empezar · uso, privacidad y límites'):
+    st.write('Esta edición es gratuita y no requiere cuenta. PDF y vectorización se procesan en tu navegador; no subimos esos archivos al servidor.')
+    st.write(f'La transcripción admite {MAX_BYTES // 1024 // 1024} MB y {MAX_SECONDS // 60} minutos por archivo. Usa el servidor compartido: si está ocupado, espera unos minutos. No se te cobra por transcribir.')
+    st.write('El audio se elimina al terminar el trabajo. El texto permanece temporalmente en la sesión; descárgalo antes de salir. Revisa los resultados automáticos antes de usarlos.')
+footer()

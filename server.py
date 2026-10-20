@@ -280,7 +280,17 @@ def cancel(job_id: str, request: Request):
 
 @app.get("/")
 def index():
+    return FileResponse(ROOT / "web" / "landing.html")
+
+
+@app.get("/transcribir")
+def transcription_studio():
     return FileResponse(ROOT / "web" / "index.html")
+
+
+@app.get("/vectorizar")
+def vector_tools():
+    return FileResponse(ROOT / "web" / "vector.html")
 
 
 @app.get("/pdf")

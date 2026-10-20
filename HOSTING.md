@@ -2,7 +2,7 @@
 
 ## La opción recomendada: Streamlit Community Cloud
 
-Permite probar **la transcripción y las herramientas PDF en una misma app**, conectando este repositorio privado. El código ya incluye la entrada compatible; falta crear el despliegue desde tu cuenta.
+Permite usar **transcripción, PDF y vectorización en una misma app**. El propietario ya confirmó que su despliegue de transcripción y PDF funciona. La portada da acceso mediante **Ingresar al estudio**, sin cuenta en esta edición. Los pasos siguientes sirven también para recrear el despliegue.
 
 1. Entra en <https://share.streamlit.io/> e inicia sesión con GitHub.
 2. Autoriza a Streamlit a leer `mcjey71-crypto/resapo-mvp` y elige **Create app / New app → Deploy a public app from GitHub** (el nombre del botón puede variar). La app puede compartirse aunque el código esté en un repositorio privado.
@@ -21,7 +21,33 @@ Permite probar **la transcripción y las herramientas PDF en una misma app**, co
 
 La versión para alojamiento gratuito admite audio/video de **50 MB y 15 minutos** por archivo para moderar el uso de recursos. Los PDF conservan sus límites de 50 MB por archivo, 100 MB en total y 500 páginas. El reconocimiento se ejecuta en CPU y puede tardar; una instancia gratuita puede entrar en reposo o alcanzar los límites del servicio. No se han evaluado cargas de muchos usuarios concurrentes.
 
-La versión Streamlit se ha probado localmente con Whisper real y las herramientas PDF. **Todavía no se ha publicado ni verificado en una cuenta de Community Cloud.** El despliegue requiere iniciar sesión y autorizar el acceso a tu repositorio; no se necesitan credenciales en este chat.
+La versión Streamlit se prueba localmente con Whisper real, PDF y vectorización. El propietario confirmó el despliegue original en Community Cloud; esa confirmación no sustituye una validación de cada nueva versión. No se necesitan credenciales en este chat.
+
+## Actualizaciones automáticas
+
+Streamlit sigue la rama **main** de este repositorio. Un cambio local no aparece en la app hasta hacer **commit y push** a esa rama. Al recibirlo, Streamlit actualiza la aplicación automáticamente. Si cambian las dependencias de Python o `packages.txt`, hace un despliegue completo y puede tardar más.
+
+Para modificar portada, PDF o vectorización:
+
+```bash
+npm ci --ignore-scripts
+npm run build
+npm test
+```
+
+Incluye también los archivos compilados de `web/` y `docs/` en el commit. Streamlit no ejecuta npm en producción. Después del push, recarga la misma URL. Si sigue mostrando una versión anterior, revisa los logs en **Manage app** y usa **Reboot app** si es necesario; no necesitas crear una segunda app.
+
+Fuente: [Streamlit: actualizar tu app desde GitHub](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app#update-your-app).
+
+## Qué se consume y quién paga
+
+- La app actual no cobra a sus visitantes. No hay pagos, cuentas, tarjetas ni una API de transcripción facturada por minuto.
+- Whisper corre en la CPU del alojamiento. Consume memoria, tiempo de proceso y capacidad del servidor compartido. En Community Cloud gratuito esto se traduce en límites, esperas, suspensión o falta de capacidad, no en un cobro implementado por Re-SAPO.
+- Los PDF y la vectorización usan el procesador y la memoria del dispositivo del visitante. Los archivos no se envían al backend de Re-SAPO.
+- Los créditos utilizados para desarrollar la app en un asistente de programación son independientes del uso de las herramientas publicadas.
+- Si en el futuro se contrata un servidor de pago o una API facturada, el titular de ese servicio asumiría esos cargos. Para vender acceso todavía faltan cuentas reales, pagos y cuotas verificadas en servidor; el botón **Ingresar** no aporta esas funciones.
+
+Los límites de la transcripción siguen siendo 50 MB/15 minutos en Streamlit. Vectorización: hasta 15 MB/25 MP; se reduce a 1200 px por lado para trazar. La disponibilidad gratuita no equivale a capacidad ilimitada.
 
 ## Probar solamente PDF sin instalar herramientas
 
@@ -35,9 +61,9 @@ No necesita Python, Whisper ni un servidor para las operaciones PDF. Si tu naveg
 
 ## GitHub Pages: alternativa solo para PDF
 
-GitHub Pages sirve sitios estáticos. **En GitHub Free, Pages se ofrece para repositorios públicos**; los repositorios privados requieren un plan compatible. Este repositorio es privado y su visibilidad no se ha cambiado.
+GitHub Pages sirve sitios estáticos. **En GitHub Free, Pages se ofrece para repositorios públicos**; los repositorios privados requieren un plan compatible. Al comprobarlo el 20 de octubre de 2026, el repositorio ya es público; este cambio de visibilidad lo hizo el propietario fuera de esta implementación. Pages sigue desactivado.
 
-Si tu plan ya permite Pages con repositorios privados:
+Con el repositorio público puedes activar Pages:
 
 1. Abre el repositorio → **Settings → Pages**.
 2. En **Build and deployment**, selecciona **Deploy from a branch**.
@@ -52,7 +78,7 @@ Consulta de la documentación oficial: 19 de octubre de 2026, hora de Lima.
 
 | Servicio | Qué permite en este proyecto | Condiciones observadas | Decisión |
 | --- | --- | --- | --- |
-| GitHub Pages | Herramientas PDF y página estática | Gratis con GitHub Free para repositorios públicos; no ejecuta el servidor Python. | Build autónomo listo en `/docs`; el repositorio actual es privado. |
+| GitHub Pages | Herramientas PDF y página estática | Gratis con GitHub Free para repositorios públicos; no ejecuta el servidor Python. | Build autónomo listo en `/docs`; el repositorio actual es público. |
 | Streamlit Community Cloud | Transcripción en Python y herramientas PDF embebidas | Documentación indica despliegue gratuito y conexión a repositorios públicos o privados. Está sujeto a recursos disponibles. | Adaptador implementado y probado localmente. Opción recomendada para probar todo. |
 | Hugging Face Spaces | La arquitectura FastAPI podría alojarse como Docker Space | La documentación actual dice que CPU Basic no tiene costo por hora, **pero crear un Space con cómputo Docker/Gradio requiere plan de pago**. Los Static Spaces son gratuitos. | No se recomienda como opción de costo cero para la transcripción en una cuenta nueva. |
 

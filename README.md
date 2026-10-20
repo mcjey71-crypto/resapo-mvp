@@ -1,8 +1,8 @@
 # Re-SAPO
 
-**Ahora incluye herramientas PDF.** Para abrir y compartir la app sin instalar nada, consulta [HOSTING.md](HOSTING.md): la opción recomendada es Streamlit Community Cloud. El adaptador ya está preparado; falta desplegarlo desde tu cuenta.
+**Dale un repaso. Dale forma a tus ideas.** Un estudio con transcripción, herramientas PDF y vectorización de imágenes. La portada presenta el producto y permite ingresar sin correo ni contraseña. Este acceso es navegación, no autenticación.
 
-Para probar solo PDF, descarga `docs/index.html` y ábrelo en un navegador. Incluye un botón **Probar con un ejemplo**.
+El propietario confirmó que la transcripción y los PDF funcionan en su despliegue de Streamlit. Consulta [HOSTING.md](HOSTING.md) para actualizarlo y entender sus costos y límites. Para usar las herramientas locales por separado están `docs/index.html` (PDF) y `docs/vectorizar.html` (imagen a SVG), con ejemplos incluidos.
 
 MVP web para convertir audio y video en texto con Whisper. Conserva la identidad verde y crema y el logo SVG del avance original. La transcripción se ejecuta en el servidor, con `faster-whisper` sobre CPU; no necesita una clave de OpenAI ni Google Colab.
 
@@ -18,6 +18,8 @@ bash scripts/start.sh
 ```
 
 El servidor escucha en el puerto 8000 de la máquina. Abre la aplicación mediante el acceso a ese servidor que proporcione tu entorno. Abrir `web/index.html` directamente no inicia el motor de transcripción.
+
+Rutas: `/` portada, `/transcribir` audio/video, `/pdf` documentos y `/vectorizar` imágenes. Streamlit presenta las mismas tres áreas después de **Ingresar al estudio**.
 
 La instalación usa versiones fijas y hashes en `requirements-dev.txt`. Descarga Whisper `base` multilingüe una vez (~145 MB), verifica su SHA-256 y ejecuta las pruebas de servicio. La caché de pesos queda en `.cache/models/`. Los procesos deben iniciarse de nuevo en cada sesión.
 
@@ -39,7 +41,7 @@ En una red restringida, permite `huggingface.co`, `cas-server.xethub.hf.co`, `ca
 3. Transcribir y consultar el estado real del trabajo. El avance de subida se mide por bytes; el de reconocimiento, por la posición de los segmentos. La preparación y las esperas usan un indicador sin porcentaje inventado.
 4. Revisar y editar el texto, copiarlo o descargarlo como `.txt`.
 
-No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. La sección **Herramientas PDF**, disponible en `/pdf`, permite unir, dividir, extraer, eliminar, ordenar/girar páginas y convertir imágenes a PDF. Estos archivos se procesan localmente en el navegador. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
+No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. La sección **Herramientas PDF**, disponible en `/pdf`, permite unir, dividir, extraer, eliminar, ordenar/girar páginas y convertir imágenes a PDF. **Vectorizar imágenes**, en `/vectorizar`, transforma PNG/JPG/WebP en SVG con trazados reales. PDF e imágenes se procesan localmente en el navegador. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
 
 ## Límites y datos de la transcripción
 
@@ -52,7 +54,7 @@ No hay traducción, resumen, identificación de hablantes, grabación de micróf
 - Un cierre abrupto de la máquina puede dejar carpetas temporales `resapo-*` en el directorio temporal del sistema. No hay garantía de borrado ante un corte forzado.
 - Los IDs de trabajo son aleatorios. Las respuestas de la API llevan `Cache-Control: no-store`. No se incluye publicidad, analítica ni recursos externos en la interfaz.
 
-## Desarrollo de las herramientas PDF
+## Desarrollo del estudio y herramientas locales
 
 El código editable está en `src/`. El HTML de la herramienta se genera desde `src/pdf-template.html`; sus estilos están en `web/pdf-styles.css`.
 
@@ -62,9 +64,13 @@ npm run build
 npm test
 ```
 
-El build genera `web/pdf.html`, `web/pdf-app.js` y la versión autónoma `docs/index.html`. Estos archivos compilados se incluyen en Git para que el despliegue de Python y los sitios estáticos no requieran Node en producción. Cada modificación a `src/` debe acompañarse de un nuevo build.
+El build genera la portada `web/landing.html`, `web/pdf.html`, `web/pdf-app.js`, `web/vector.html`, `web/vector-app.js` y los HTML autónomos `docs/index.html` y `docs/vectorizar.html`. Estos archivos compilados se incluyen en Git para que el despliegue de Python y los sitios estáticos no requieran Node en producción. Cada modificación a fuentes, estilos o plantillas debe acompañarse de un nuevo build.
+
+La portada comparte los fragmentos `web/intro-*.html` y `web/intro.css`. La presentación nativa de Streamlit está en `cloud/presentation.py` y `cloud/design.css`. Streamlit filtra las etiquetas SVG en `st.html`, por lo que allí se conservan como imágenes SVG en URI de datos; no se rasteriza el logo ni el arte.
 
 Límites PDF: 50 MB por archivo, 100 MB por operación, 20 archivos y 500 páginas. JPG y PNG hasta 25 megapíxeles. Los PDF con contraseña se rechazan. Los formularios se aplanan; las firmas digitales no se conservan como válidas. No incluye OCR ni edición del texto existente. Consulta [PDF_RESEARCH.md](PDF_RESEARCH.md).
+
+Límites de vectorización: 15 MB y 25 MP de entrada, trazado a un máximo de 1200 px por lado, hasta 24 colores y tiempo máximo de 90 segundos. Color o blanco y negro, tres niveles de detalle, blancos opcionalmente transparentes y descarga SVG. Adecuado para dibujos y logos; no reconstruye detalles de una foto. Investigación y decisiones en [VECTOR_RESEARCH.md](VECTOR_RESEARCH.md).
 
 ## Comprobaciones
 
@@ -73,12 +79,16 @@ Límites PDF: 50 MB por archivo, 100 MB por operación, 20 archivos y 500 págin
 .venv/bin/python tests/browser_check.py
 npm test
 PDF_TEST_URL=http://127.0.0.1:8000/pdf .venv/bin/python tests/pdf_browser_check.py
+.venv/bin/python tests/vector_browser_check.py
+.venv/bin/python tests/studio_browser_check.py
 .venv/bin/python scripts/smoke_test.py ruta/a/una-clase.mp4 --language es
 ```
 
 Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar los flujos, límites, errores y limpieza. **No miden precisión de Whisper.** La prueba de navegador usa Chromium en `/usr/bin/chromium`, requiere el servidor encendido y simula únicamente las respuestas del reconocedor y su disponibilidad. Guarda capturas en `test-results/`.
 
 `tests/pdf_browser_check.py` usa el motor PDF real y verifica los resultados con `pypdf`, incluyendo funcionamiento sin conexión y cancelación. `tests/streamlit_browser_check.py` comprueba transcripción y PDF reales con la entrada Streamlit encendida.
+
+`tests/vector_browser_check.py` prueba el worker real, SVG descargable, transparencias renderizadas, paletas, archivos inválidos, cancelación, móvil y HTML sin conexión. `tests/studio_browser_check.py` comprueba la portada, el logo vectorial, ambos botones de ingreso y la vectorización dentro de Streamlit. No simulan la conversión.
 
 `smoke_test.py` utiliza el servidor y Whisper reales. Puede comprobar una frase mediante `--expect`. Las pruebas reales realizadas durante la preparación se documentan en `VALIDATION.md`.
 
@@ -89,7 +99,9 @@ Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar l
 - `server.py`: carga temporal, cola, FFmpeg y motor Whisper.
 - `cloud/streamlit_app.py`: entrada para probar la app completa en Streamlit Community Cloud.
 - `src/pdf-*`: motor, interfaz y plantilla de las herramientas PDF.
+- `src/vector-*`: motor, worker, interfaz y plantilla de vectorización.
 - `docs/index.html`: aplicación PDF autónoma, sin backend.
+- `docs/vectorizar.html`: vectorizador autónomo, sin backend.
 - `HOSTING.md`: instrucciones de publicación y comparación de opciones gratuitas.
 - `scripts/`: instalación, arranque, descarga verificada y prueba real.
 - `tests/`: verificaciones de API e interfaz.

@@ -1,0 +1,15 @@
+/* Re-SAPO visual system: ink green, warm paper, brass, editorial serif. */
+:root{--paper:#f6f3eb;--card:#fffefb;--ink:#193c32;--muted:#65716a;--forest:#193f33;--green:#527849;--line:#dedfd5;--pale:#ebeee4;--serif:Georgia,'Times New Roman',serif;--body:'Segoe UI',system-ui,sans-serif}
+body{background:var(--paper);color:var(--ink)}
+.header{height:94px}.brand{font-size:26px;letter-spacing:-1px}.brand small{font-size:7px;letter-spacing:2px}.brand-logo{width:46px;height:49px}
+.primary{border-radius:8px;background:var(--forest);min-height:46px}.primary:hover:enabled{background:#2c5844}
+.beta{background:#eeefe4;border:0;color:#45634f}
+.eyebrow{font-size:10px;letter-spacing:2px;color:#66755c}
+footer{padding:28px 0;font-size:10px}
+.pdf-app .pdf-hero{padding:40px 0 32px}
+.pdf-app .pdf-hero h1{font-size:clamp(36px,4vw,55px)}
+.pdf-app .pdf-tools{gap:10px}.pdf-app .pdf-tool{box-shadow:0 3px 10px #183c3203;border-radius:10px}
+.pdf-app .pdf-tool.active{border-color:#486746;box-shadow:inset 0 0 0 1px #486746;background:#e9eddf}
+.pdf-app .pdf-options{background:#edf0e6}.pdf-app .pdf-editor{box-shadow:0 14px 35px #183c3205}
+.pdf-app .pdf-workspace{margin-top:32px}
+@media(max-width:760px){.header{height:80px}.brand{font-size:24px}.header .brand-logo{width:38px;height:42px}.pdf-app .pdf-hero{padding:24px 0}.pdf-app .pdf-hero h1{font-size:36px}}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#183e33"><title>Re-SAPO · Vectorizar imágenes</title>
+<link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/studio.css"><link rel="stylesheet" href="/static/vector-styles.css">
+<script src="/static/vector-app.js" defer></script>
+</head>
+<body class="vector-app">
+<a class="skip" href="#vector-workspace">Saltar al vectorizador</a>
+<header class="header"><a href="#" class="brand" aria-label="Re-SAPO, inicio"><span class="brand-logo">{{LOGO}}</span><span>Re-SAPO<small>DALE FORMA A TUS IDEAS.</small></span></a><nav><!-- SERVER-NAV --><a href="/">Inicio</a><a href="/pdf">PDF</a><!-- /SERVER-NAV --><span class="beta"><span></span>En tu dispositivo</span></nav></header>
+<main>
+<section class="vector-hero"><div><span class="eyebrow">ESTUDIO DE IMAGEN / 03</span><h1>De píxeles a<br><em>posibilidades.</em></h1><p>Convierte logos, dibujos e iconos en vectores.<br>Un SVG que crece con tus ideas, sin perder nitidez.</p></div><div class="vector-intro-note"><span class="vector-symbol" aria-hidden="true">→</span><p>Elige una imagen.<br>Ajusta su carácter.<br><strong>Hazla escalable.</strong></p><span class="eyebrow">SIN MARCAS DE AGUA</span></div></section>
+<section id="vector-workspace" class="vector-workspace" aria-busy="false" aria-label="Vectorizador de imágenes">
+<aside class="vector-settings">
+<span class="eyebrow">01 / TU IMAGEN</span>
+<input id="v-input" type="file" accept=".png,.jpg,.jpeg,.webp" hidden data-v-lock>
+<button id="v-drop" class="dropzone" type="button" data-v-lock><span class="vector-upload" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span><strong>Seleccionar imagen</strong><span>o arrástrala aquí</span><small>PNG, JPG, WebP · hasta 15 MB</small></button>
+<div class="vector-file"><span id="v-filename"></span><button id="v-clear" class="text-button" type="button" data-v-lock>Limpiar</button></div>
+<button id="v-sample" type="button" class="vector-example" data-v-lock>Probar con un ejemplo →</button>
+<div class="vector-controls"><span class="eyebrow">02 / DALE TU TOQUE</span>
+<label for="v-mode">Estilo</label><select id="v-mode" data-v-lock><option value="color">A color</option><option value="mono">Blanco y negro</option></select>
+<div id="v-color-row"><label for="v-colors">Paleta de colores</label><select id="v-colors" data-v-lock><option value="4">4 · Esencial</option><option value="8" selected>8 · Equilibrada</option><option value="16">16 · Rica</option><option value="24">24 · Más matices</option></select></div>
+<div id="v-threshold-row" hidden><label for="v-threshold">Umbral de negro <output id="v-threshold-value">150</output></label><input id="v-threshold" type="range" min="0" max="255" value="150" data-v-lock></div>
+<label for="v-detail">Contornos</label><select id="v-detail" data-v-lock><option value="soft">Suaves · Menos detalle</option><option value="balanced" selected>Equilibrados</option><option value="fine">Precisos · Más detalle</option></select>
+<label class="vector-checkbox"><input id="v-white" type="checkbox" data-v-lock>Quitar blancos</label><small>Vuelve transparentes los blancos y casi blancos de toda la imagen, también los interiores.</small>
+</div>
+<button id="v-run" type="button" class="primary" disabled>Vectorizar imagen <span aria-hidden="true">→</span></button>
+<div id="v-working" role="status" hidden>Encontrando contornos…</div><button id="v-cancel" type="button" class="text-button" hidden>Cancelar</button>
+<p id="v-message" class="vector-message" role="status" aria-live="polite" hidden></p>
+</aside>
+<div class="vector-results">
+<div class="vector-preview-head"><span class="eyebrow">03 / EL ANTES Y EL DESPUÉS</span><span class="vector-local">● Procesamiento local</span></div>
+<div class="vector-comparison">
+<figure><figcaption><strong>Original</strong><span>PÍXELES</span></figcaption><div class="vector-stage"><img id="v-original" alt="Imagen original" hidden><div id="v-source-empty" class="vector-empty"><span aria-hidden="true">▧</span><p>Todo empieza<br>con una imagen.</p></div></div></figure>
+<figure><figcaption><strong>Tu vector</strong><span>SVG</span></figcaption><div class="vector-stage vector-output-stage"><img id="v-output" alt="Resultado vectorizado" hidden><div id="v-result-empty" class="vector-empty"><span aria-hidden="true">◇</span><p>La misma idea.<br>Otra dimensión.</p></div></div></figure>
+</div>
+<div class="vector-result-bar"><p id="v-stats">Tu SVG aparecerá aquí.</p><label for="v-zoom">Zoom del vector <output id="v-zoom-value">100%</output><input id="v-zoom" type="range" min="100" max="400" step="25" value="100"></label><a id="v-download" class="primary" download hidden>Descargar SVG ↓</a></div>
+<p id="v-resolution" class="vector-footnote">Las imágenes grandes se ajustan a un máximo de 1200 px por lado para crear los contornos.</p>
+<div class="vector-tip"><strong>Un buen original hace la diferencia.</strong><p>Los logos y dibujos de colores planos dan mejores resultados. Las fotos se convierten en ilustraciones simplificadas; no se recuperan detalles perdidos. Puedes abrir el SVG en Inkscape, Figma o Illustrator para seguir editándolo.</p></div>
+</div>
+</section>
+<section class="vector-bottom"><p><strong>Tus imágenes se quedan contigo.</strong><br>Se procesan en este navegador. Descarga el resultado antes de salir.</p><p><strong>Vectores de verdad.</strong><br>Contornos y curvas escalables, sin una foto escondida dentro del SVG.</p></section>
+</main><footer><span class="footer-brand">Re-SAPO<span>Dale un repaso. Dale forma a tus ideas.</span></span><span>Estudio de imagen · Edición gratuita</span></footer>
+</body></html>
