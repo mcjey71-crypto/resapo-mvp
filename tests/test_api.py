@@ -166,3 +166,13 @@ def test_frontend_and_security_headers(client):
     assert client.get('/static/app.js').status_code == 200
     assert client.get('/static/../server.py').status_code == 404
     assert client.get('/api/transcriptions/unknown').status_code == 404
+
+
+def test_pdf_tools_route_and_worker_policy(client):
+    response = client.get('/pdf')
+    assert response.status_code == 200
+    assert 'Unir PDF' in response.text
+    assert '/static/pdf-app.js' in response.text
+    assert "worker-src 'self' blob:" in response.headers['content-security-policy']
+    assert "unsafe-eval" not in response.headers['content-security-policy']
+    assert client.get('/static/pdf-app.js').status_code == 200

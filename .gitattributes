@@ -1,0 +1,4 @@
+*.pdf binary
+web/pdf-app.js linguist-generated=true whitespace=-blank-at-eol
+web/pdf.html linguist-generated=true
+docs/index.html linguist-generated=true whitespace=-blank-at-eol

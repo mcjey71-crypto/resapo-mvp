@@ -5,3 +5,7 @@ __pycache__/
 .env
 *.log
 test-results/
+
+node_modules/
+.venv-streamlit/
+.streamlit/secrets.toml

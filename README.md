@@ -1,10 +1,14 @@
 # Re-SAPO
 
+**Ahora incluye herramientas PDF.** Para abrir y compartir la app sin instalar nada, consulta [HOSTING.md](HOSTING.md): la opción recomendada es Streamlit Community Cloud. El adaptador ya está preparado; falta desplegarlo desde tu cuenta.
+
+Para probar solo PDF, descarga `docs/index.html` y ábrelo en un navegador. Incluye un botón **Probar con un ejemplo**.
+
 MVP web para convertir audio y video en texto con Whisper. Conserva la identidad verde y crema y el logo SVG del avance original. La transcripción se ejecuta en el servidor, con `faster-whisper` sobre CPU; no necesita una clave de OpenAI ni Google Colab.
 
 ## Ejecutar
 
-Requisitos: Python 3.12, [uv](https://docs.astral.sh/uv/) y FFmpeg en el PATH. En este entorno ya están instalados.
+Requisitos: Node.js 20 o posterior, Python 3.12, [uv](https://docs.astral.sh/uv/) y FFmpeg en el PATH. En este entorno ya están instalados.
 
 Desde la carpeta del proyecto (`/workspace/resapo-mvp` en el entorno de desarrollo):
 
@@ -35,9 +39,9 @@ En una red restringida, permite `huggingface.co`, `cas-server.xethub.hf.co`, `ca
 3. Transcribir y consultar el estado real del trabajo. El avance de subida se mide por bytes; el de reconocimiento, por la posición de los segmentos. La preparación y las esperas usan un indicador sin porcentaje inventado.
 4. Revisar y editar el texto, copiarlo o descargarlo como `.txt`.
 
-No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
+No hay traducción, resumen, identificación de hablantes, grabación de micrófono ni cobros en esta versión. La sección **Herramientas PDF**, disponible en `/pdf`, permite unir, dividir, extraer, eliminar, ordenar/girar páginas y convertir imágenes a PDF. Estos archivos se procesan localmente en el navegador. El reconocimiento puede omitir o confundir palabras, especialmente con ruido, música o varias voces simultáneas. Revisa el resultado.
 
-## Límites y datos
+## Límites y datos de la transcripción
 
 - 200 MB y 60 minutos por archivo. Se pueden ajustar con `RESAPO_MAX_MB` y `RESAPO_MAX_MINUTES` al iniciar.
 - Un trabajador de transcripción y hasta tres solicitudes admitidas entre subida, espera y procesamiento. El resto recibe HTTP 429.
@@ -48,15 +52,33 @@ No hay traducción, resumen, identificación de hablantes, grabación de micróf
 - Un cierre abrupto de la máquina puede dejar carpetas temporales `resapo-*` en el directorio temporal del sistema. No hay garantía de borrado ante un corte forzado.
 - Los IDs de trabajo son aleatorios. Las respuestas de la API llevan `Cache-Control: no-store`. No se incluye publicidad, analítica ni recursos externos en la interfaz.
 
+## Desarrollo de las herramientas PDF
+
+El código editable está en `src/`. El HTML de la herramienta se genera desde `src/pdf-template.html`; sus estilos están en `web/pdf-styles.css`.
+
+```bash
+npm ci --ignore-scripts
+npm run build
+npm test
+```
+
+El build genera `web/pdf.html`, `web/pdf-app.js` y la versión autónoma `docs/index.html`. Estos archivos compilados se incluyen en Git para que el despliegue de Python y los sitios estáticos no requieran Node en producción. Cada modificación a `src/` debe acompañarse de un nuevo build.
+
+Límites PDF: 50 MB por archivo, 100 MB por operación, 20 archivos y 500 páginas. JPG y PNG hasta 25 megapíxeles. Los PDF con contraseña se rechazan. Los formularios se aplanan; las firmas digitales no se conservan como válidas. No incluye OCR ni edición del texto existente. Consulta [PDF_RESEARCH.md](PDF_RESEARCH.md).
+
 ## Comprobaciones
 
 ```bash
 .venv/bin/python -m pytest -q
 .venv/bin/python tests/browser_check.py
+npm test
+PDF_TEST_URL=http://127.0.0.1:8000/pdf .venv/bin/python tests/pdf_browser_check.py
 .venv/bin/python scripts/smoke_test.py ruta/a/una-clase.mp4 --language es
 ```
 
 Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar los flujos, límites, errores y limpieza. **No miden precisión de Whisper.** La prueba de navegador usa Chromium en `/usr/bin/chromium`, requiere el servidor encendido y simula únicamente las respuestas del reconocedor y su disponibilidad. Guarda capturas en `test-results/`.
+
+`tests/pdf_browser_check.py` usa el motor PDF real y verifica los resultados con `pypdf`, incluyendo funcionamiento sin conexión y cancelación. `tests/streamlit_browser_check.py` comprueba transcripción y PDF reales con la entrada Streamlit encendida.
 
 `smoke_test.py` utiliza el servidor y Whisper reales. Puede comprobar una frase mediante `--expect`. Las pruebas reales realizadas durante la preparación se documentan en `VALIDATION.md`.
 
@@ -65,6 +87,10 @@ Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar l
 - `web/index.html`, `web/styles.css`, `web/app.js`: interfaz accesible, adaptable a móvil y sin compilación de JavaScript.
 - `web/logo.svg`: trazos vectoriales originales, con fondo transparente. El mismo SVG está integrado en el HTML para el encabezado y la ilustración.
 - `server.py`: carga temporal, cola, FFmpeg y motor Whisper.
+- `cloud/streamlit_app.py`: entrada para probar la app completa en Streamlit Community Cloud.
+- `src/pdf-*`: motor, interfaz y plantilla de las herramientas PDF.
+- `docs/index.html`: aplicación PDF autónoma, sin backend.
+- `HOSTING.md`: instrucciones de publicación y comparación de opciones gratuitas.
 - `scripts/`: instalación, arranque, descarga verificada y prueba real.
 - `tests/`: verificaciones de API e interfaz.
 - `REVIEW.md`: diagnóstico de los archivos que compartiste y decisiones del MVP.

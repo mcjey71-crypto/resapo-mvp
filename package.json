@@ -1,0 +1,17 @@
+{
+  "name": "resapo-mvp",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-pdf.mjs",
+    "test": "node --test tests/pdf-core.test.mjs"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "pdf-lib": "1.17.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
