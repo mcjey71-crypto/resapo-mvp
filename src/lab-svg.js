@@ -4,7 +4,7 @@ const TAGS = new Set(
   ),
 );
 const ATTRS = new Set(
-  "version desc xmlns xmlns:xlink viewBox width height x y x1 y1 x2 y2 cx cy r rx ry d points transform fill stroke color stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity fill-opacity stroke-opacity fill-rule clip-rule id clip-path mask gradientUnits gradientTransform spreadMethod offset stop-color stop-opacity fx fy fr preserveAspectRatio href xlink:href font-size font-family font-weight text-anchor dominant-baseline dx dy".split(
+  "version desc xmlns xmlns:xlink viewBox width height x y x1 y1 x2 y2 cx cy r rx ry d points transform fill stroke color stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity fill-opacity stroke-opacity fill-rule clip-rule clipPathUnits id clip-path mask gradientUnits gradientTransform spreadMethod offset stop-color stop-opacity fx fy fr preserveAspectRatio href xlink:href font-size font-family font-weight text-anchor dominant-baseline dx dy".split(
     " ",
   ),
 );

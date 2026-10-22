@@ -286,10 +286,10 @@ const presets = {
     detail: "fine",
     smoothing: 0.25,
     speckles: 0,
-    corners: true,
+    corners: false,
     size: 1200,
     background: "keep",
-    tip: "Colores planos y esquinas definidas. Indica los HEX de tu marca si necesitas colores exactos.",
+    tip: "Colores planos y curvas continuas. Activa las esquinas solo si tu imagen tiene geometría recta.",
   },
   letters: {
     mode: "mono",
@@ -297,7 +297,7 @@ const presets = {
     detail: "fine",
     smoothing: 0.15,
     speckles: 0,
-    corners: true,
+    corners: false,
     size: 2400,
     background: "all",
     tip: "Conserva puntos y acentos. Ajusta el umbral para no adelgazar las letras; comprueba los huecos al ampliar.",
@@ -307,7 +307,7 @@ const presets = {
     colors: 2,
     detail: "balanced",
     smoothing: 1,
-    speckles: 4,
+    speckles: 0,
     corners: false,
     size: 1200,
     background: "edge",
@@ -318,8 +318,8 @@ const presets = {
     colors: 16,
     detail: "balanced",
     smoothing: 0.5,
-    speckles: 4,
-    corners: true,
+    speckles: 0,
+    corners: false,
     size: 1200,
     background: "keep",
     tip: "Más matices producen más trazados y archivos mayores. Los degradados se aproximan con bandas de color.",
@@ -350,8 +350,8 @@ $("v-preset").onchange = () => {
 $("v-detail").onchange = () => {
   const detail = $("v-detail").value;
   $("v-smoothing").value = { soft: 2.5, balanced: 1, fine: 0.25 }[detail];
-  $("v-speckles").value = { soft: 16, balanced: 4, fine: 0 }[detail];
-  $("v-corners").checked = detail !== "soft";
+  $("v-speckles").value = { soft: 4, balanced: 0, fine: 0 }[detail];
+  $("v-corners").checked = false;
   refreshOptions();
 };
 document
@@ -526,3 +526,22 @@ $("svg-fit").onclick = () => {
 $("svg-background").onchange = () =>
   ($("svg-stage").dataset.background = $("svg-background").value);
 refreshOptions();
+
+// srcdoc resolves fragment links against the embedding page in some browsers.
+// Scroll this document explicitly: never navigate/reload the Streamlit iframe.
+function scrollWithin(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("v-show-tracer").onclick = () => scrollWithin("vector-workspace");
+$("v-show-viewer").onclick = () => {
+  scrollWithin("svg-viewer-title");
+  $("svg-input").focus({ preventScroll: true });
+};
+document.addEventListener("click", (event) => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link) return;
+  event.preventDefault();
+  scrollWithin(link.getAttribute("href").slice(1) || "vector-workspace");
+});

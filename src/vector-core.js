@@ -1,4 +1,8 @@
-import ImageTracer from "imagetracerjs";
+import {
+  quantizeCovered,
+  mergeSmallRegions,
+  coveredSVG,
+} from "./vector-geometry.js";
 
 export const MAX_TRACE_EDGE = 2400;
 export const MAX_IMAGE_PIXELS = 25_000_000;
@@ -157,7 +161,7 @@ export function vectorize(image, settings = {}) {
     settings.smoothing ?? { soft: 2.5, balanced: 1, fine: 0.25 }[detail],
   );
   const speckles = Number(
-    settings.speckles ?? { soft: 16, balanced: 4, fine: 0 }[detail],
+    settings.speckles ?? { soft: 4, balanced: 0, fine: 0 }[detail],
   );
   const alpha = Number(settings.alpha ?? 128);
   const background = settings.background ?? "keep";
@@ -255,7 +259,7 @@ export function vectorize(image, settings = {}) {
     roundcoords: 2,
     viewbox: true,
     desc: false,
-    rightangleenhance: settings.corners ?? detail !== "soft",
+    rightangleenhance: settings.corners ?? false,
   };
   if (mode === "mono")
     options.pal = [
@@ -266,33 +270,31 @@ export function vectorize(image, settings = {}) {
   else if (custom.length)
     options.pal = [...custom, { r: 255, g: 255, b: 255, a: 0 }];
   else options.pal = paletteFor(data, colors);
-  const traced = ImageTracer.imagedataToTracedata(
-    { width, height, data },
-    options,
+  const quantized = quantizeCovered(
+    data,
+    width,
+    height,
+    options.pal,
+    mode === "mono" || !!custom.length,
   );
-  // Transparent layers must remain holes, not opaque painted shapes.
-  traced.palette.forEach((color, index) => {
-    if (color.a < 128) traced.layers[index] = [];
-  });
-  if (mode === "mono") traced.palette[0] = ink[0];
-  const usedColors = traced.palette
-    .filter((color, index) => color.a >= 128 && traced.layers[index]?.length)
-    .map(
-      (c) =>
-        "#" +
-        [c.r, c.g, c.b]
-          .map((v) => Math.round(v).toString(16).padStart(2, "0"))
-          .join(""),
-    );
-  const svg = ImageTracer.getsvgstring(traced, options);
-  const paths = (svg.match(/<path /g) || []).length;
-  if (!paths)
-    throw new Error(
-      "No se encontraron contornos. Prueba con más detalle u otra imagen.",
-    );
-  if (svg.length > 12 * 1024 * 1024)
-    throw new Error(
-      "El resultado es demasiado complejo. Reduce los colores o el detalle.",
-    );
-  return { svg, paths, width, height, colors: usedColors };
+  mergeSmallRegions(
+    quantized.labels,
+    width,
+    height,
+    quantized.transparent,
+    speckles,
+  );
+  if (mode === "mono") quantized.colors[0] = ink[0];
+  return {
+    ...coveredSVG(
+      quantized.labels,
+      quantized.colors,
+      quantized.transparent,
+      width,
+      height,
+      options,
+    ),
+    width,
+    height,
+  };
 }

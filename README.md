@@ -70,7 +70,7 @@ La portada comparte los fragmentos `web/intro-*.html` y `web/intro.css`. La pres
 
 Límites PDF: 50 MB por archivo, 100 MB por operación, 20 archivos y 500 páginas. JPG y PNG hasta 25 megapíxeles. Los PDF con contraseña se rechazan. Los formularios se aplanan; las firmas digitales no se conservan como válidas. No incluye OCR ni edición del texto existente. Consulta [PDF_RESEARCH.md](PDF_RESEARCH.md).
 
-Límites de vectorización: 15 MB y 25 MP de entrada, trazado seleccionable a 600/1200/2400 px por lado, hasta 32 colores y tiempo máximo de 90 segundos. Ajustes para logos planos, letras y sellos; paleta de marca de hasta 16 HEX exactos; tinta, curvas, esquinas, manchas y fondo por borde. Comparación con zoom y visor SVG local de hasta 12 MB, con fondos claro/oscuro/transparente. Adecuado para dibujos y logos; no reconstruye detalles de una foto. Investigación y decisiones en [VECTOR_RESEARCH.md](VECTOR_RESEARCH.md).
+Límites de vectorización: 15 MB y 25 MP de entrada, trazado seleccionable a 600/1200/2400 px por lado, hasta 32 colores y tiempo máximo de 90 segundos. Ajustes para imágenes de colores planos, letras, dibujos y matices; paleta de hasta 16 HEX exactos; tinta, curvas, esquinas, manchas y fondo por borde. Comparación con zoom y visor SVG local de hasta 12 MB, con fondos claro/oscuro/transparente. El trazado separa color y transparencia, conserva la cobertura de las regiones y suaviza curvas por defecto. La limpieza integra pequeñas regiones en colores vecinos. No reconstruye detalles perdidos de una foto. Investigación y decisiones en [VECTOR_RESEARCH.md](VECTOR_RESEARCH.md).
 
 ## Comprobaciones
 
@@ -80,6 +80,7 @@ Límites de vectorización: 15 MB y 25 MP de entrada, trazado seleccionable a 60
 npm test
 PDF_TEST_URL=http://127.0.0.1:8000/pdf .venv/bin/python tests/pdf_browser_check.py
 .venv/bin/python tests/vector_browser_check.py
+.venv/bin/python tests/vector_regression_check.py
 .venv/bin/python tests/studio_browser_check.py
 .venv/bin/python tests/converter_browser_check.py
 .venv/bin/python scripts/smoke_test.py ruta/a/una-clase.mp4 --language es

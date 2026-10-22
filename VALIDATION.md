@@ -94,3 +94,14 @@ Las comprobaciones son locales, no verifican el despliegue público de Streamlit
 - `tests/vector_browser_check.py`: regresión completa del vectorizador (color/mono, pequeños acentos, huecos, errores, descarga, cancelación/reintento, móvil y HTML autónomo) aprobada. `tests/studio_browser_check.py`: portada, entrada, retorno y SVG generado en Streamlit aprobados.
 
 Capturas: `test-results/vector-logos/`. Son comprobaciones locales con logos sintéticos; no equivalen a una evaluación de todos los logos, navegadores o dispositivos ni a validar el despliegue público. No se cambió el motor de transcripción ni el convertidor del servidor. Se mantiene ImageTracerJS, con más resolución, control de geometría y tratamiento específico de paleta/fondo.
+
+
+## Correcciones de vectorización y regresión general — 22 de octubre de 2026 (Lima)
+
+- **31 pruebas Node y 38 pruebas Python aprobadas**. Las nuevas pruebas verifican que la paleta automática no convierte píxeles opacos en transparentes y que la limpieza de regiones no crea huecos ni rellena transparencias reales.
+- `tests/vector_regression_check.py`: abre el visor con el botón exacto que reportó el usuario dentro de Streamlit, carga SVG, vuelve a vectorizar y descarga; repite el recorrido dos veces. El componente permanece en `about:srcdoc`, conserva su funcionamiento y también evita navegación accidental desde los enlaces internos. Comprueba texto general de imágenes y ausencia de desbordamiento a 390 px.
+- Comparación renderizada contra salidas del commit `77aa396`: en una muestra desapareció el hueco opaco central; en otra, los píxeles interiores con alfa inferior a 250 pasaron de 1438 a 0 al renderizar a escala 4. En un círculo sintético de radio 55 px, el error radial RMS pasó de 0,291 a 0,170 px y el pico saliente máximo de 0,500 a 0,225 px. Estas medidas describen esas muestras, no todas las imágenes. Fixtures anteriores guardados en `tests/fixtures/vector-quality/`; resultados y métricas en `test-results/vector-quality/`.
+- Regresiones de navegador aprobadas: vectorizador, paleta exacta/fondo/visor SVG, portada e ingreso, las seis herramientas PDF, las 17 herramientas creativas y su guía, edición de SVG en Streamlit, conversión MP4→MP3/TXT→PDF/PNG→JPG y transcripción real de video con Whisper y descarga TXT. La prueba de interfaz FastAPI mantiene su reconocedor simulado explícitamente; la de Streamlit usa el motor real.
+- `npm run build` genera los artefactos estáticos actualizados. No se agregaron dependencias ni servicios facturados.
+
+Las comprobaciones son locales. No se afirma que todos los archivos posibles produzcan resultados perfectos ni que estas pruebas verifiquen el despliegue público de Streamlit. La calidad final sigue dependiendo de la imagen y los ajustes seleccionados.

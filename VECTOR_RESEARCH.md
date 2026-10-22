@@ -19,17 +19,17 @@ ImageTracer documenta seis pasos: cuantización de color, separación de capas y
 
 - PNG, JPEG y WebP; hasta 15 MB y 25 megapíxeles. Se descodifican con `createImageBitmap` y se ajustan proporcionalmente a un máximo seleccionable de 600/1200/2400 px por lado antes del trazado.
 - Worker separado para mantener los controles utilizables; cancelación real por terminación del worker y límite de ejecución de 90 segundos. No hay estimaciones de porcentaje ficticias.
-- Paletas automáticas de 2 a 32 colores visibles (2, 3, 4, 6, 8, 16, 24 o 32 en la interfaz). Nuestra selección inicial usa un histograma ponderado por presencia y distancia de color, evitando que el muestreo espacial del motor omita acentos pequeños de un logo. La cuantización posterior pertenece a ImageTracer.
+- Paletas automáticas de 2 a 32 colores visibles (2, 3, 4, 6, 8, 16, 24 o 32 en la interfaz). Nuestra selección inicial usa un histograma ponderado por presencia y distancia de color, evitando que el muestreo espacial omita pequeños acentos de color. La cuantización RGB posterior refina la paleta automática sin asignar transparencia a píxeles visibles.
 - Blanco y negro con umbral ajustable; detalle suave, equilibrado o preciso.
 - Conserva regiones transparentes y los huecos. La transparencia se simplifica a opaco/transparente con umbral de alfa 128; no se promete preservar semitransparencias o sombras exactamente.
 - “Quitar blancos” elimina todos los píxeles casi blancos (cada canal ≥245), incluso blancos interiores. No es eliminación inteligente del fondo.
 - Comparación original/vector, zoom de hasta 400%, descarga de SVG y ejemplo de un sapo creado con Canvas.
-- Los nombres se muestran como texto. Solo se procesan píxeles: no se aceptan archivos SVG externos ni se inserta marcado del usuario. El resultado se previsualiza como imagen desde un Blob.
+- Los nombres se muestran como texto. El trazador procesa píxeles; el visor independiente acepta SVG estáticos validados sin insertar marcado del usuario en el DOM. El resultado se previsualiza como imagen desde un Blob.
 - Se revocan URLs al cambiar/limpiar la selección y al salir. Ningún archivo se envía al servidor. Las bibliotecas se incluyen en el artefacto, sin CDN.
 
 ## Límites de calidad
 
-Es una primera herramienta para logos, iconos y dibujos de colores planos. No es OCR, no reconoce fuentes ni reconstruye texto editable. Las fotos se simplifican en áreas de color. Puede perder detalles pequeños, generar muchos trazados o producir un SVG mayor que el original. La ampliación del SVG no recupera información perdida en la imagen fuente. Inkscape, Figma o Illustrator permiten continuar la edición.
+La herramienta funciona mejor con imágenes, iconos y dibujos de colores planos. No es OCR, no reconoce fuentes ni reconstruye texto editable. Las fotos se simplifican en áreas de color. Puede perder detalles pequeños, generar muchos trazados o producir un SVG mayor que el original. La ampliación del SVG no recupera información perdida en la imagen fuente. Inkscape, Figma o Illustrator permiten continuar la edición.
 
 ## Fuentes consultadas
 
@@ -54,3 +54,18 @@ Las instrucciones de compilación de estas fuentes se trataron como documentaci�
 - SVG importado: validación XML y rechazo de scripts/eventos, animaciones, HTML, entidades, hojas de estilo y recursos externos. Se muestra como una imagen Blob aislada, nunca insertando el SVG del usuario en el DOM. No se promete compatibilidad con todo SVG exportado; las fuentes no instaladas pueden cambiar el aspecto, por lo que se recomiendan letras convertidas a contornos. No hay descargas de fuentes ni decodificadores externos.
 
 No se agregaron servicios de pago, dependencias ni procesamiento en el servidor. Los resultados siguen aproximando el mapa de píxeles: un original borroso no permite recuperar detalles que ya no existen. Los degradados trazados se aproximan mediante regiones de color, no como degradados vectoriales editables.
+
+
+## Corrección de cobertura, curvas y navegación — 22 de octubre de 2026
+
+La interfaz habla de imágenes y no presupone el uso del cliente. Los accesos al visor y al trazador son botones que desplazan el documento actual. Los enlaces internos también se resuelven dentro del componente, evitando que una referencia de fragmento navegue fuera del `srcdoc` de Streamlit.
+
+El trazado mantiene ImageTracer para detectar contornos y ajustar curvas, con estas correcciones en `src/vector-geometry.js`:
+
+- Color y cobertura se cuantizan por separado: un píxel opaco nunca puede asignarse a la entrada transparente de una paleta automática. Los HEX explícitos se conservan exactos.
+- La limpieza ya no descarta contornos: integra componentes pequeños en el color opaco adyacente con mayor frontera compartida. No crea transparencia ni rellena componentes transparentes reales. Está desactivada por defecto para conservar puntos y detalles.
+- Una capa de cobertura con recorte evita grietas internas entre regiones de color ajustadas por separado. Los huecos transparentes forman parte de la máscara. Los bordes se aproximan, por lo que esta medida no promete conservar cada píxel del original.
+- Todos los contornos, incluidos los huecos, se escriben con la misma precisión de tres decimales. Se evita el redondeo entero que usaba el serializador original para algunos contornos interiores.
+- Cuando no se solicita conservar esquinas, un filtro simétrico corto suaviza la escalera de píxeles antes del ajuste. Los controles de curvas cuadráticas se limitan al rectángulo del contorno original. La conservación de esquinas queda como opción para geometría angular, desactivada por defecto.
+
+La comparación reproducible usa tres imágenes sintéticas y salidas de la versión anterior guardadas como fixtures. Comprueba opacidad, ausencia de grietas interiores y menor desviación radial en un círculo. No mide la calidad de todas las imágenes ni reemplaza la inspección del resultado ampliado. No se añadieron dependencias, APIs ni procesamiento de servidor.

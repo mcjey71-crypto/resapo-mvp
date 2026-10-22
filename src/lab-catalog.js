@@ -54,7 +54,7 @@ export const catalog = [
     "Crear favicon",
     "Crea un icono PNG o ICO cuadrado.",
     "Tu web necesita un icono para la pestaña del navegador.",
-    "Sube tu logo.|Elige formato y tamaño; se centrará sin deformarse.|Descarga el icono.",
+    "Sube una imagen.|Elige formato y tamaño; se centrará sin deformarse.|Descarga el icono.",
   ],
   [
     "number",
@@ -101,7 +101,7 @@ export const catalog = [
     "Colores SVG",
     "Editar colores SVG",
     "Cambia colores de un SVG y descarga variantes.",
-    "Tu logo necesita adaptarse a distintos fondos o marcas.",
+    "Tu imagen vectorial necesita adaptarse a distintos fondos o combinaciones de colores.",
     "Sube un SVG estático, por ejemplo uno creado por Re-SAPO.|Cambia los colores y revisa la vista previa.|Descarga una variante y sigue ajustando para crear otra.",
   ],
   [

@@ -184,3 +184,15 @@ test("single ink removes threshold-generated white halos, not just pure source w
   assert.deepEqual(result.colors, ["#224466"]);
   assert.doesNotMatch(result.svg, /rgb\(255,255,255\)/);
 });
+
+
+test('automatic palette never assigns opaque pixels to transparency',async()=>{
+  const {quantizeCovered}=await import('../src/vector-geometry.js');
+  const data=new Uint8ClampedArray([255,255,255,255,0,0,0,0]);
+  const result=quantizeCovered(data,2,1,[{r:0,g:0,b:0,a:255},{r:200,g:0,b:0,a:255},{r:255,g:255,b:255,a:0}]);
+  assert.notEqual(result.labels[0],result.transparent);assert.equal(result.labels[1],result.transparent);
+});
+test('small colored regions merge without creating alpha holes or filling real holes',async()=>{
+  const {mergeSmallRegions}=await import('../src/vector-geometry.js');
+  const labels=new Uint8Array(25).fill(0);labels[12]=1;labels[6]=2;mergeSmallRegions(labels,5,5,2,4);assert.equal(labels[12],0);assert.equal(labels[6],2);
+});
