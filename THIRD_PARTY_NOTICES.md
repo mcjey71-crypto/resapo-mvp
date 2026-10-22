@@ -187,3 +187,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
+
+## Herramientas creativas
+
+PDF.js (pdfjs-dist 6.4.299), Apache-2.0, Mozilla Foundation; jsdiff 9.0.0, BSD-3-Clause. Textos completos en LAB_LICENSES.txt e incluidos en el bundle de herramientas creativas. No se distribuyen las dependencias opcionales nativas de Node en el navegador.

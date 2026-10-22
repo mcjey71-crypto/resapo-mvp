@@ -8,7 +8,7 @@ MVP web para convertir audio y video en texto con Whisper. Conserva la identidad
 
 ## Ejecutar
 
-Requisitos: Node.js 20 o posterior, Python 3.12, [uv](https://docs.astral.sh/uv/) y FFmpeg en el PATH. En este entorno ya están instalados.
+Requisitos: Node.js 22.13 o posterior (recomendado: 24), Python 3.12, [uv](https://docs.astral.sh/uv/) y FFmpeg en el PATH. En este entorno ya están instalados.
 
 Desde la carpeta del proyecto (`/workspace/resapo-mvp` en el entorno de desarrollo):
 
@@ -19,7 +19,7 @@ bash scripts/start.sh
 
 El servidor escucha en el puerto 8000 de la máquina. Abre la aplicación mediante el acceso a ese servidor que proporcione tu entorno. Abrir `web/index.html` directamente no inicia el motor de transcripción.
 
-Rutas: `/` portada, `/transcribir` audio/video, `/pdf` documentos, `/vectorizar` imágenes y `/convertir` conversión de archivos. Streamlit presenta las cuatro herramientas después de **Ingresar al estudio**.
+Rutas: `/` portada, `/transcribir` audio/video, `/pdf` documentos, `/vectorizar` imágenes, `/convertir` conversión de archivos y `/herramientas` herramientas creativas. Streamlit presenta cinco áreas de herramientas después de **Ingresar al estudio**.
 
 La instalación usa versiones fijas y hashes en `requirements-dev.txt`. Descarga Whisper `base` multilingüe una vez (~145 MB), verifica su SHA-256 y ejecuta las pruebas de servicio. La caché de pesos queda en `.cache/models/`. Los procesos deben iniciarse de nuevo en cada sesión.
 
@@ -116,3 +116,7 @@ Las pruebas de API usan FFmpeg real y un reconocedor controlado para verificar l
 Esta versión prepara y valida la transcripción. Para abrir un servicio de pago faltan cuentas de usuario, autorización por trabajo, cuotas y minutos consumidos verificados en servidor, pagos confirmados por el proveedor, HTTPS y límites en el proxy de entrada. Evita ejecutar varias instancias de Uvicorn con esta cola en memoria; para escalar se necesita una cola y almacenamiento compartidos.
 
 El costo de alojar Whisper depende del equipo y los minutos procesados. Conviene medirlo antes de prometer un pase ilimitado de S/ 1. Los códigos visibles en JavaScript y las marcas de `localStorage` del prototipo no sirven para proteger ingresos. El notebook es una referencia de uso de Whisper; una sesión de Colab no sustituye un servidor disponible para clientes.
+
+## Herramientas creativas y guía interactiva
+
+La quinta pestaña añade 17 herramientas locales para imágenes, PDF, colores SVG y texto. Cada una explica qué hace y qué problema resuelve, con una guía de tres pasos y un ejemplo. No usan APIs facturadas ni suben los archivos al servidor. Consulta [LOCAL_TOOLS.md](LOCAL_TOOLS.md) para funciones y límites. Versión autónoma: `docs/herramientas.html`; fuentes: `src/lab-*`; compilación: `scripts/build-lab.mjs`.

@@ -333,6 +333,11 @@ def vector_tools():
     return FileResponse(ROOT / "web" / "vector.html")
 
 
+@app.get("/herramientas")
+def creative_tools():
+    return FileResponse(ROOT / "web" / "lab.html")
+
+
 @app.get("/pdf")
 def pdf_tools():
     return FileResponse(ROOT / "web" / "pdf.html")

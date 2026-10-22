@@ -105,3 +105,7 @@ Esta entrada comparte el servicio de Whisper de `server.py`. La cola y el modelo
 ## Actualización del convertidor
 
 El convertidor añade Pillow, python-docx, pypdf y fpdf2 en los requirements con versiones y hashes fijados. La fuente PDF se incluye en `assets/fonts/`. FFmpeg ya está en `packages.txt`. Streamlit detectará el cambio de dependencias y puede tardar varios minutos en reinstalarlas; no hay que crear otro despliegue, añadir claves ni cambiar Python 3.12.
+
+### Herramientas creativas
+
+La quinta pestaña ejecuta sus 17 herramientas en el navegador, incluida la guía y sus ejemplos. No necesita claves, paquetes Python adicionales ni servicios externos. El archivo `docs/herramientas.html` incluye código y estilos, también PDF.js; debe actualizarse con `npm run build` antes del push. El arranque de Streamlit sigue sujeto a la hibernación de su plan gratuito. La actualización no cambia el alojamiento.

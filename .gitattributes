@@ -7,3 +7,6 @@ web/vector.html linguist-generated=true
 web/landing.html linguist-generated=true
 web/converter.html linguist-generated=true
 docs/vectorizar.html linguist-generated=true
+web/lab-app.js linguist-generated=true whitespace=-blank-at-eol
+web/lab.html linguist-generated=true
+docs/herramientas.html linguist-generated=true whitespace=-blank-at-eol

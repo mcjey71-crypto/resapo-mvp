@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-studio.mjs && node scripts/build-pdf.mjs && node scripts/build-vector.mjs",
-    "test": "node --test tests/pdf-core.test.mjs tests/vector-core.test.mjs"
+    "build": "node scripts/build-studio.mjs && node scripts/build-pdf.mjs && node scripts/build-vector.mjs && node scripts/build-lab.mjs",
+    "test": "node --test tests/pdf-core.test.mjs tests/vector-core.test.mjs tests/lab-core.test.mjs"
   },
   "dependencies": {
+    "diff": "9.0.0",
     "fflate": "0.8.3",
     "imagetracerjs": "1.2.6",
-    "pdf-lib": "1.17.1"
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.4.299"
   },
   "devDependencies": {
     "esbuild": "0.28.2"

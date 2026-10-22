@@ -82,7 +82,7 @@ if not st.session_state.entered:
     st.stop()
 
 studio_intro()
-transcription_tab, pdf_tab, vector_tab, conversion_tab = st.tabs(['Transcripción', 'Herramientas PDF', 'Vectorizar imágenes', 'Convertir archivos'])
+transcription_tab, pdf_tab, vector_tab, conversion_tab, creative_tab = st.tabs(['Transcripción', 'Herramientas PDF', 'Vectorizar imágenes', 'Convertir archivos', 'Herramientas creativas'])
 with transcription_tab:
     st.html('<div class="transcription-heading"><span class="studio-kicker">ESTUDIO DE VOZ / 01</span>'
             '<h2>De lo que escuchas<br><em>a lo que puedes recordar.</em></h2>'
@@ -159,8 +159,10 @@ with vector_tab:
     components.html(tool_page('vectorizar.html', (ROOT / 'docs/vectorizar.html').stat().st_mtime_ns), height=1400, scrolling=True)
 with conversion_tab:
     render_converter()
+with creative_tab:
+    components.html(tool_page('herramientas.html', (ROOT / 'docs/herramientas.html').stat().st_mtime_ns), height=1600, scrolling=True)
 with st.expander('Antes de empezar · uso, privacidad y límites'):
-    st.write('Esta edición es gratuita y no requiere cuenta. Herramientas PDF y vectorización se procesan en tu navegador. Transcripción y Convertir archivos se procesan en el servidor; los archivos temporales se eliminan al terminar.')
+    st.write('Esta edición es gratuita y no requiere cuenta. Herramientas PDF, vectorización y Herramientas creativas se procesan en tu navegador. Transcripción y Convertir archivos se procesan en el servidor; los archivos temporales se eliminan al terminar.')
     st.write(f'La transcripción admite {MAX_BYTES // 1024 // 1024} MB y {MAX_SECONDS // 60} minutos por archivo. Usa el servidor compartido: si está ocupado, espera unos minutos. No se te cobra por transcribir.')
     st.write('El audio se elimina al terminar el trabajo. El texto permanece temporalmente en la sesión; descárgalo antes de salir. Revisa los resultados automáticos antes de usarlos.')
 footer()

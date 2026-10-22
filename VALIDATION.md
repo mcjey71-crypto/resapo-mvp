@@ -71,3 +71,17 @@ Se detectó y corrigió un caso real: un video puede durar más que su pista de 
 La prueba automatizada espera a que termine cada rerun de Streamlit antes de abrir el menú de salida. Esto evita confundir el cierre normal de un menú durante un rerun con un fallo del convertidor.
 
 Capturas y descargas: `test-results/converter-browser/`. Se probaron codecs y documentos sintéticos/pequeños; no todos los archivos posibles, tiempos máximos de cada formato ni carga multiusuario. El convertidor es intencionalmente de formatos comunes, y la conversión de documentos es de texto, no de maquetación. No se afirma que acepte cualquier extensión existente.
+
+## Herramientas creativas — 22 de octubre de 2026 (Lima)
+
+- 17 herramientas locales y guía interactiva por herramienta (qué hace, problema que resuelve, tres pasos, ejemplo sintético). Quinta pestaña de Streamlit y ruta `/herramientas`.
+- 24 pruebas Node aprobadas: las 19 existentes y cinco pruebas nuevas de texto, reemplazo literal/límites, cabecera ICO, formularios y radio buttons, límites/contraseña de PDF.
+- 38 pruebas Python de transcripción/API/conversión siguen aprobadas.
+- `tests/lab_browser_check.py`: se ejecutaron las 17 herramientas con motores reales. Descargas leídas con Pillow, pypdf y XML: dimensiones/píxeles, favicon ICO, marcas y numeración, valores AcroForm con acentos, extracción de imágenes y firma en la página seleccionada. Se verifican invalidación de resultados, errores de recorte, rechazo de SVG con scripts/referencias externas, navegación de la guía y ausencia de POST/PUT. El HTML autónomo crea PDF con su worker sin conexión.
+- `tests/lab_streamlit_check.py`: guía y formulario PDF real dentro del iframe de Streamlit; descarga con acentos; edición de un SVG previamente generado por el vectorizador; escritorio y móvil sin desbordamiento.
+- Regresiones aprobadas: portada/ingreso/vectorización en Streamlit, convertidor MP4→MP3/TXT→PDF/PNG→JPG y transcripción real con Whisper/TXT/PDF local. También pasaron las seis herramientas PDF anteriores, con contenido, rotación, imágenes, móvil y HTML autónomo comprobados.
+- `npm audit --omit=dev`: cero vulnerabilidades informadas para las dependencias runtime en esta consulta; no equivale a una auditoría completa.
+
+La prueba encontró y permitió corregir la limpieza al cambiar de PDF con la API actual de PDF.js. También se corrigió el empaquetado HTML autónomo para conservar literalmente los caracteres de reemplazo de JavaScript. Capturas: `test-results/lab/streamlit-desktop.png` y `streamlit-mobile.png`.
+
+Las comprobaciones son locales, no verifican el despliegue público de Streamlit. No se midió rendimiento en todos los móviles ni compatibilidad con todo PDF/SVG existente; formatos, memoria, fidelidad y límites están documentados en LOCAL_TOOLS.md y en la interfaz. Las nuevas herramientas no usan servicios facturados ni suben archivos al servidor.

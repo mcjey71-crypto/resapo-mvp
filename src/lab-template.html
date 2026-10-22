@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Re-SAPO · Herramientas creativas</title>
+    <link rel="icon" href="/static/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/studio.css" />
+    <link rel="stylesheet" href="/static/lab.css" />
+    <script src="/static/lab-app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#lab">Saltar a las herramientas</a>
+    <header class="header">
+      <a class="brand" href="#lab"
+        ><span class="brand-logo">{{LOGO}}</span
+        ><span>Re-SAPO<small>EL ESTUDIO DE TUS IDEAS</small></span></a
+      >
+      <nav>
+        <!-- SERVER-NAV --><a href="/">Inicio</a><a href="/pdf">PDF</a
+        ><a href="/vectorizar">Vectorizar</a
+        ><a href="/convertir">Convertir</a><!-- /SERVER-NAV --><span
+          class="beta"
+          >Solo en tu dispositivo</span
+        >
+      </nav>
+    </header>
+    <main id="lab">
+      <div class="eyebrow">PEQUEÑOS CAMBIOS. GRANDES RESPIROS.</div>
+      <h1>Tu archivo, <em>a tu manera.</em></h1>
+      <p class="lab-lead">
+        Arregla una imagen, completa un documento o dale un repaso a tus
+        palabras. Sin subir tus archivos.
+      </p>
+      <div
+        id="lab-groups"
+        class="lab-groups"
+        role="group"
+        aria-label="Categorías de herramientas"
+      ></div>
+      <label for="lab-tool">¿Qué necesitas hacer?</label
+      ><select id="lab-tool"></select>
+      <section class="lab-guide" aria-labelledby="guide-title">
+        <div>
+          <span class="studio-kicker">GUÍA RÁPIDA INTERACTIVA</span>
+          <h2 id="guide-title"></h2>
+          <p id="guide-what"></p>
+          <p><strong>Te ayuda cuando…</strong> <span id="guide-pain"></span></p>
+        </div>
+        <div class="guide-step">
+          <span id="guide-count" class="studio-kicker"></span>
+          <p id="guide-step" aria-live="polite"></p>
+          <div class="lab-actions">
+            <button id="guide-prev" type="button" class="secondary">
+              ← Anterior</button
+            ><button id="guide-next" type="button" class="secondary">
+              Siguiente →
+            </button>
+          </div>
+          <button id="lab-sample" type="button" class="text-button">
+            Probar con un ejemplo
+          </button>
+        </div>
+      </section>
+      <section class="lab-editor" aria-label="Área de trabajo">
+        <div>
+          <h2 id="lab-title"></h2>
+          <p id="lab-limit" class="lab-note"></p>
+          <label id="file-label" for="lab-file">Selecciona tu archivo</label
+          ><input id="lab-file" type="file" />
+          <div id="lab-options"></div>
+          <div class="lab-actions">
+            <button id="lab-run" type="button" class="primary">
+              Crear resultado</button
+            ><button id="lab-reset" type="button" class="secondary">
+              Limpiar</button
+            ><button id="lab-cancel" type="button" class="secondary" hidden>
+              Cancelar
+            </button>
+          </div>
+          <p id="lab-status" role="status" aria-live="polite"></p>
+        </div>
+        <aside>
+          <h3>Vista previa</h3>
+          <div id="lab-preview" class="lab-preview">
+            <p>Tu archivo aparecerá aquí.</p>
+          </div>
+          <div id="lab-result" aria-live="polite"></div>
+        </aside>
+      </section>
+      <p class="lab-note">
+        Descarga lo que quieras conservar antes de salir. Los archivos
+        permanecen en tu navegador durante esta sesión. Las nuevas herramientas
+        no usan APIs de pago.
+      </p>
+    </main>
+    <footer>
+      <span class="footer-brand"
+        >Re-SAPO<span>Dale un repaso. Dale forma a tus ideas.</span></span
+      ><span>Tu siguiente paso, más sencillo.</span>
+    </footer>
+  </body>
+</html>
