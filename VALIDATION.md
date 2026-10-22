@@ -85,3 +85,12 @@ Capturas y descargas: `test-results/converter-browser/`. Se probaron codecs y do
 La prueba encontró y permitió corregir la limpieza al cambiar de PDF con la API actual de PDF.js. También se corrigió el empaquetado HTML autónomo para conservar literalmente los caracteres de reemplazo de JavaScript. Capturas: `test-results/lab/streamlit-desktop.png` y `streamlit-mobile.png`.
 
 Las comprobaciones son locales, no verifican el despliegue público de Streamlit. No se midió rendimiento en todos los móviles ni compatibilidad con todo PDF/SVG existente; formatos, memoria, fidelidad y límites están documentados en LOCAL_TOOLS.md y en la interfaz. Las nuevas herramientas no usan servicios facturados ni suben archivos al servidor.
+
+## Vectorización para logos y visor SVG — 22 de octubre de 2026
+
+- 29 pruebas Node aprobadas: se mantienen PDF y herramientas creativas; nuevas verificaciones de paleta HEX exacta, transparencia independiente de la distancia de color, fondo conectado al borde, conservación de interiores blancos, controles inválidos, límite de 2400 px, recolor de tinta y eliminación de halos generados por el umbral.
+- `tests/vector_logo_browser_check.py`: motor real en navegador; píxeles del SVG renderizado comprueban alfa exterior 0, blanco interior opaco y color de marca; descarga XML con colores exactos; imagen de 2000×500 produce un viewBox de 2000×500 en calidad alta y mantiene tinta personalizada. Se comprueba zoom compartido, invalidación de resultados y fondos de inspección.
+- Visor: SVG con degradado, clases CSS y metadatos; colores renderizados comprobados; zoom/ajuste; rechazo de eventos, scripts, recursos externos y XML corrupto. Pruebas sin conexión, sin peticiones externas, a 390 px y con el HTML autónomo exacto. Vectorización y apertura del SVG también pasaron dentro del iframe real de Streamlit.
+- `tests/vector_browser_check.py`: regresión completa del vectorizador (color/mono, pequeños acentos, huecos, errores, descarga, cancelación/reintento, móvil y HTML autónomo) aprobada. `tests/studio_browser_check.py`: portada, entrada, retorno y SVG generado en Streamlit aprobados.
+
+Capturas: `test-results/vector-logos/`. Son comprobaciones locales con logos sintéticos; no equivalen a una evaluación de todos los logos, navegadores o dispositivos ni a validar el despliegue público. No se cambió el motor de transcripción ni el convertidor del servidor. Se mantiene ImageTracerJS, con más resolución, control de geometría y tratamiento específico de paleta/fondo.

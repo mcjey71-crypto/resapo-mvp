@@ -48,7 +48,7 @@ Fuente: [Streamlit: actualizar tu app desde GitHub](https://docs.streamlit.io/de
 - Los créditos utilizados para desarrollar la app en un asistente de programación son independientes del uso de las herramientas publicadas.
 - Si en el futuro se contrata un servidor de pago o una API facturada, el titular de ese servicio asumiría esos cargos. Para vender acceso todavía faltan cuentas reales, pagos y cuotas verificadas en servidor; el botón **Ingresar** no aporta esas funciones.
 
-Los límites de la transcripción siguen siendo 50 MB/15 minutos en Streamlit. Vectorización: hasta 15 MB/25 MP; se reduce a 1200 px por lado para trazar. La disponibilidad gratuita no equivale a capacidad ilimitada.
+Los límites de la transcripción siguen siendo 50 MB/15 minutos en Streamlit. Vectorización: hasta 15 MB/25 MP; resolución seleccionable de 600/1200/2400 px por lado para trazar, sin ampliar originales pequeños. El visor SVG admite archivos estáticos de hasta 12 MB. La disponibilidad gratuita no equivale a capacidad ilimitada.
 
 ## Probar solamente PDF sin instalar herramientas
 

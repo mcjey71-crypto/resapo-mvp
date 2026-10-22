@@ -14,7 +14,7 @@ for (const css of ['styles.css', 'studio.css', 'vector-styles.css']) {
   portable = portable.replace(`<link rel="stylesheet" href="/static/${css}">`, `<style>${await readFile(`web/${css}`, 'utf8')}</style>`);
 }
 portable = portable.replace('<script src="/static/vector-app.js" defer></script>', '')
-  .replace('</body>', `<script>${js.replace(/<\/script/gi, '<\\/script')}</script></body>`);
+  .replace('</body>', () => `<script>${js.replace(/<\/script/gi, '<\\/script')}</script></body>`);
 await mkdir('docs', { recursive: true });
 await writeFile('docs/vectorizar.html', portable);
 console.log('Vectorización: aplicación web y versión autónoma generadas.');
