@@ -15,12 +15,12 @@ function startWorker() {
   worker.onerror = () => {
     for (const request of requests.values()) request.reject(new Error('No pudimos procesar estos archivos. Prueba con documentos más pequeños.'));
     requests.clear();
-    worker.terminate(); startWorker();
+    worker.terminate(); worker = null;
   };
 }
-startWorker();
 function run(action, payload) {
   return new Promise((resolve, reject) => {
+    if (!worker) startWorker();
     const id = ++requestId;
     requests.set(id, { resolve, reject });
     worker.postMessage({ id, action, payload });
@@ -61,6 +61,7 @@ function controls() {
   $('pdf-selection-count').textContent = `${state.selected.size} seleccionadas`;
   for (const id of ['pdf-rotate','pdf-delete-pages']) $(id).disabled = state.busy || !state.selected.size;
   $('pdf-reset-order').disabled = state.busy || !state.files.length;
+  updateMoveButtons();
 }
 function switchTool(tool) {
   if (state.busy || !TOOLS[tool]) return;
@@ -99,49 +100,106 @@ function move(list, from, to) {
   if (state.busy || to < 0 || to >= list.length) return;
   list.splice(to, 0, list.splice(from, 1)[0]); clearOutput(); render();
 }
-function resetPages() {
+function resetPages(redraw = true) {
   state.pages = state.files[0]?.info.map((_, page) => ({ source: 0, page, rotation: 0 })) || [];
-  state.selected.clear(); clearOutput(); render();
+  state.selected.clear(); clearOutput(); if (redraw) render();
+}
+// Views are keyed by the actual item, not its name or position. Reordering must
+// keep DOM nodes, decoded thumbnails, keyboard focus and scroll position intact.
+const fileViews = new WeakMap(), pageViews = new WeakMap();
+function disabled(el, value) { if (el && el.disabled !== value) el.disabled = value; }
+function updateMoveButtons() {
+  for (const [items, views] of [[state.files, fileViews], [state.pages, pageViews]]) {
+    items.forEach((item, i) => {
+      const view = views.get(item);
+      if (!view) return;
+      disabled(view.before, state.busy || i === 0);
+      disabled(view.after, state.busy || i === items.length - 1);
+    });
+  }
+}
+function reconcile(container, nodes) {
+  const wanted = new Set(nodes), focus = document.activeElement;
+  const scrollTop = container.scrollTop, scrollLeft = container.scrollLeft;
+  for (const child of [...container.children]) if (!wanted.has(child)) child.remove();
+  let cursor = container.firstElementChild;
+  for (const node of nodes) {
+    if (node !== cursor) container.insertBefore(node, cursor);
+    else cursor = cursor.nextElementSibling;
+  }
+  // insertBefore may blur a moved node in older browsers. Restore without scroll.
+  if (focus?.isConnected && document.activeElement !== focus && !focus.disabled)
+    focus.focus({ preventScroll: true });
+  container.scrollTop = scrollTop; container.scrollLeft = scrollLeft;
+}
+function fileView(file) {
+  let view = fileViews.get(file);
+  if (view) return view;
+  const row = document.createElement('li'); row.className = 'pdf-file';
+  const icon = document.createElement('span'); icon.className = 'pdf-file-icon';
+  if (state.tool === 'images') { const image = document.createElement('img'); image.src = file.url; image.alt = ''; icon.append(image); }
+  else icon.textContent = 'PDF';
+  const details = document.createElement('div'); details.className = 'pdf-file-detail';
+  const name = document.createElement('strong'); name.textContent = file.name;
+  const meta = document.createElement('span'); meta.textContent = `${state.tool === 'images' ? 'Imagen' : `${file.info.length} páginas`} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+  const preview = document.createElement('a'); preview.href = file.url; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'Ver original'; preview.className = 'pdf-original';
+  details.append(name, meta, preview);
+  const actions = document.createElement('div'); actions.className = 'pdf-file-actions';
+  view = { row };
+  if (TOOLS[state.tool].multiple) {
+    view.before = button('↑', `Subir ${file.name}`, () => { const i = state.files.indexOf(file); move(state.files, i, i - 1); });
+    view.after = button('↓', `Bajar ${file.name}`, () => { const i = state.files.indexOf(file); move(state.files, i, i + 1); });
+    actions.append(view.before, view.after);
+  }
+  actions.append(button('×', `Quitar ${file.name}`, () => {
+    URL.revokeObjectURL(file.url); state.files.splice(state.files.indexOf(file), 1); state.pages = []; state.selected.clear(); clearOutput(); render();
+  }));
+  row.append(icon, details, actions);
+  fileViews.set(file, view);
+  return view;
+}
+function updatePage(item, view) {
+  const selected = state.selected.has(item.page);
+  if (view.checkbox.checked !== selected) view.checkbox.checked = selected;
+  if (view.selected !== selected) {
+    view.card.classList.toggle('selected', selected); view.selected = selected;
+  }
+  const angle = ((state.files[0].info[item.page].rotation + item.rotation) % 360 + 360) % 360;
+  if (view.angle !== angle) {
+    view.paper.className = `pdf-page-paper angle-${angle}`;
+    view.caption.textContent = `Original ${item.page + 1} · ${angle}°`;
+    view.angle = angle;
+  }
+}
+function pageView(item) {
+  let view = pageViews.get(item);
+  if (view) { updatePage(item, view); return view; }
+  const card = document.createElement('li'); card.className = 'pdf-page-card';
+  const label = document.createElement('label');
+  const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.lock = ''; checkbox.disabled = state.busy;
+  checkbox.setAttribute('aria-label', `Seleccionar página ${item.page + 1}`);
+  checkbox.addEventListener('change', () => {
+    checkbox.checked ? state.selected.add(item.page) : state.selected.delete(item.page);
+    updatePage(item, view); controls();
+  });
+  const paper = document.createElement('span'); paper.textContent = String(item.page + 1);
+  const caption = document.createElement('span'); caption.className = 'pdf-page-caption';
+  label.append(checkbox, paper, caption);
+  const actions = document.createElement('div'); actions.className = 'pdf-page-actions';
+  const before = button('←', `Mover página ${item.page + 1} antes`, () => { const i = state.pages.indexOf(item); move(state.pages, i, i - 1); });
+  const after = button('→', `Mover página ${item.page + 1} después`, () => { const i = state.pages.indexOf(item); move(state.pages, i, i + 1); });
+  actions.append(before, button('↻', `Girar página ${item.page + 1}`, () => { item.rotation = (item.rotation + 90) % 360; clearOutput(); updatePage(item, view); }), after);
+  const preview = document.createElement('a'); preview.href = `${state.files[0].url}#page=${item.page + 1}`; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'Ver página'; preview.className = 'pdf-original';
+  card.append(label, actions, preview);
+  view = { card, checkbox, paper, caption, before, after };
+  pageViews.set(item, view); updatePage(item, view);
+  return view;
 }
 function render() {
-  const container = $('pdf-files'); container.replaceChildren();
-  state.files.forEach((file, i) => {
-    const row = document.createElement('li'); row.className = 'pdf-file';
-    const icon = document.createElement('span'); icon.className = 'pdf-file-icon';
-    if (state.tool === 'images') { const image = document.createElement('img'); image.src = file.url; image.alt = ''; icon.append(image); }
-    else icon.textContent = 'PDF';
-    const details = document.createElement('div'); details.className = 'pdf-file-detail';
-    const name = document.createElement('strong'); name.textContent = file.name;
-    const meta = document.createElement('span'); meta.textContent = `${state.tool === 'images' ? 'Imagen' : `${file.info.length} páginas`} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
-    const preview = document.createElement('a'); preview.href = file.url; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'Ver original'; preview.className = 'pdf-original';
-    details.append(name, meta, preview);
-    const actions = document.createElement('div'); actions.className = 'pdf-file-actions';
-    if (TOOLS[state.tool].multiple) actions.append(button('↑', `Subir ${file.name}`, () => move(state.files, i, i - 1), i === 0), button('↓', `Bajar ${file.name}`, () => move(state.files, i, i + 1), i === state.files.length - 1));
-    actions.append(button('×', `Quitar ${file.name}`, () => {
-      URL.revokeObjectURL(file.url); state.files.splice(i, 1); state.pages = []; state.selected.clear(); clearOutput(); render();
-    }));
-    row.append(icon, details, actions); container.append(row);
-  });
-  const pages = $('pdf-pages'); pages.replaceChildren();
-  if (state.tool === 'organize') state.pages.forEach((item, index) => {
-    const card = document.createElement('li'); card.className = 'pdf-page-card';
-    card.classList.toggle('selected', state.selected.has(item.page));
-    const label = document.createElement('label');
-    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = state.selected.has(item.page); checkbox.dataset.lock = ''; checkbox.disabled = state.busy;
-    checkbox.setAttribute('aria-label', `Seleccionar página ${item.page + 1}`);
-    checkbox.addEventListener('change', () => { checkbox.checked ? state.selected.add(item.page) : state.selected.delete(item.page); render(); });
-    const paper = document.createElement('span'); paper.className = 'pdf-page-paper'; paper.textContent = String(item.page + 1);
-    // Fixed classes work with the site's strict Content Security Policy.
-    const angle = ((state.files[0].info[item.page].rotation + item.rotation) % 360 + 360) % 360;
-    paper.classList.add(`angle-${angle}`);
-    const caption = document.createElement('span'); caption.className = 'pdf-page-caption'; caption.textContent = `Original ${item.page + 1} · ${angle}°`;
-    label.append(checkbox, paper, caption);
-    const actions = document.createElement('div'); actions.className = 'pdf-page-actions';
-    actions.append(button('←', `Mover página ${item.page + 1} antes`, () => move(state.pages, index, index - 1), index === 0), button('↻', `Girar página ${item.page + 1}`, () => { item.rotation = (item.rotation + 90) % 360; clearOutput(); render(); }), button('→', `Mover página ${item.page + 1} después`, () => move(state.pages, index, index + 1), index === state.pages.length - 1));
-    const preview = document.createElement('a'); preview.href = `${state.files[0].url}#page=${item.page + 1}`; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'Ver página'; preview.className = 'pdf-original';
-    card.append(label, actions, preview); pages.append(card);
-  });
-  $('pdf-page-total').textContent = `${state.pages.length} páginas en el resultado`;
+  reconcile($('pdf-files'), state.files.map(file => fileView(file).row));
+  reconcile($('pdf-pages'), state.tool === 'organize' ? state.pages.map(item => pageView(item).card) : []);
+  const total = `${state.pages.length} páginas en el resultado`;
+  if ($('pdf-page-total').textContent !== total) $('pdf-page-total').textContent = total;
   controls();
 }
 async function normalizeImage(file) {
@@ -174,8 +232,7 @@ async function addFiles(files) {
       added.push({ name: file.name, size: file.size, bytes, info, url: URL.createObjectURL(file) });
     }
     state.files.push(...added); clearOutput();
-    if (state.tool === 'organize') resetPages();
-    render();
+    if (state.tool === 'organize') resetPages(false);
   } catch (error) {
     added.forEach(file => URL.revokeObjectURL(file.url));
     if (error.name !== 'AbortError') message(error.message);
@@ -219,7 +276,7 @@ async function generate() {
     $('pdf-view-result').href = url; $('pdf-view-result').hidden = mime !== 'application/pdf';
     $('pdf-result').hidden = false; $('pdf-download').focus({ preventScroll: true });
   } catch (error) { if (error.name !== 'AbortError') message(error.message); }
-  finally { if (generation === state.generation) { busy(false); render(); } }
+  finally { if (generation === state.generation) busy(false); }
 }
 document.querySelectorAll('[data-tool]').forEach(button => button.addEventListener('click', () => {
   switchTool(button.dataset.tool); $('pdf-workspace').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
@@ -232,9 +289,9 @@ window.addEventListener('dragover', e => e.preventDefault()); window.addEventLis
 $('pdf-run').addEventListener('click', generate);
 $('pdf-clear').addEventListener('click', () => { releaseFiles(); clearOutput(); message(); render(); });
 $('pdf-cancel').addEventListener('click', () => {
-  ++state.generation; worker.terminate();
+  ++state.generation; worker?.terminate(); worker = null;
   for (const request of requests.values()) request.reject(new DOMException('Cancelado', 'AbortError'));
-  requests.clear(); startWorker(); busy(false); render(); message('Operación cancelada. Tus archivos originales siguen intactos.', 'info');
+  requests.clear(); busy(false); render(); message('Operación cancelada. Tus archivos originales siguen intactos.', 'info');
 });
 $('pdf-rotate').addEventListener('click', () => { state.pages.filter(p => state.selected.has(p.page)).forEach(p => { p.rotation = (p.rotation + 90) % 360; }); clearOutput(); render(); });
 $('pdf-delete-pages').addEventListener('click', () => {

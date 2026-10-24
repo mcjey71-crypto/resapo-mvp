@@ -13,9 +13,24 @@ with sync_playwright() as p:
     page.goto(os.getenv('STREAMLIT_TEST_URL','http://127.0.0.1:8501'))
     expect(page.get_by_role('heading',name='Dale un repaso.',exact=False)).to_be_visible()
     page.get_by_role('button',name='Ingresar al estudio →',exact=True).first.click()
+    def idle():
+        # The uploader can appear before the initial Streamlit rerun finishes.
+        # Do not race a new upload or language change against that rerun.
+        page.wait_for_function('''() => {
+            if (document.querySelector('[data-testid=stApp]')?.dataset.testScriptState !== 'notRunning') {
+                window.transcriptionReady = null; return false;
+            }
+            window.transcriptionReady ??= performance.now();
+            return performance.now() - window.transcriptionReady > 300;
+        }''')
+        page.evaluate('window.transcriptionReady=null')
+    idle()
     page.locator('input[type=file]').first.set_input_files('.cache/fixtures/jfk.mp4')
+    expect(page.get_by_role('button',name='Transcribir archivo',exact=True)).to_be_enabled()
+    idle()
     page.get_by_role('combobox').first.click()
     page.get_by_role('option',name='Inglés',exact=True).click()
+    idle()
     page.get_by_role('button',name='Transcribir archivo',exact=True).click()
     expect(page.get_by_role('textbox',name='Tu transcripción — puedes editarla')).to_have_value(re.compile('ask not what your country'),timeout=120000)
     page.screenshot(path='test-results/streamlit-transcription.png',full_page=True)

@@ -18,7 +18,7 @@ for (const css of ['styles.css', 'pdf-styles.css', 'studio.css']) {
 }
 const js = (await readFile('web/pdf-app.js', 'utf8')).replace(/<\/script/gi, '<\\/script');
 portable = portable.replace('<script src="/static/pdf-app.js" defer></script>', '');
-portable = portable.replace('</body>', `<script>${js}</script></body>`);
+portable = portable.replace('</body>', () => `<script>${js}</script></body>`);
 await mkdir('docs', { recursive: true });
 await writeFile('docs/index.html', portable);
 await writeFile('docs/.nojekyll', '');

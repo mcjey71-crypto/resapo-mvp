@@ -105,3 +105,23 @@ Capturas: `test-results/vector-logos/`. Son comprobaciones locales con logos sin
 - `npm run build` genera los artefactos estáticos actualizados. No se agregaron dependencias ni servicios facturados.
 
 Las comprobaciones son locales. No se afirma que todos los archivos posibles produzcan resultados perfectos ni que estas pruebas verifiquen el despliegue público de Streamlit. La calidad final sigue dependiendo de la imagen y los ajustes seleccionados.
+
+
+## Respuesta al reordenar PDF — 24 de octubre de 2026 (Lima)
+
+Se reprodujo el escenario indicado por el usuario con 10 PDFs de 50 páginas cada uno, además de un documento de 500 páginas para el organizador. Antes, cada movimiento eliminaba y recreaba toda la lista, perdiendo el foco. Ahora las filas y tarjetas se reutilizan por identidad del documento/página (no por nombre), se actualizan sus posiciones y límites, y se restaura el foco sin desplazar la vista cuando el navegador lo pierde al mover un nodo. Seleccionar o girar una página actualiza su tarjeta sin reconstruir las demás. Se eliminaron renderizados duplicados después de cargar y generar documentos.
+
+`tests/pdf_performance_check.py` mide 24 movimientos alternados por escenario en Chromium con CPU ralentizada 4×. Tiempo medio del manejador más el cálculo inmediato del diseño, en ms:
+
+| Escenario | Antes (`c3f5893`) | Después |
+| --- | ---: | ---: |
+| 10 PDFs en la ruta web | 14,73 | 4,75 |
+| Organizador de 500 páginas | 517,93 | 16,93 |
+| 10 PDFs dentro de Streamlit | 13,40 | 5,53 |
+| 10 PDFs en Streamlit, ancho móvil | 12,14 | 6,53 |
+
+Las nuevas listas conservan todos sus nodos, sin reemplazos ni pérdidas de foco en esos movimientos. Reordenar no envía mensajes al motor PDF. La prueba también comprueba con `pypdf` las 500 páginas descargadas en el orden esperado, invalidación del resultado anterior, selección/giro/eliminación/restablecimiento, cambio entre las cinco pestañas sin perder archivos y ausencia de desbordamiento móvil. Los tiempos son medidas locales orientativas, no una garantía para todos los equipos o archivos; las aserciones de regresión verifican comportamiento y conservación de nodos, no un umbral de tiempo dependiente del equipo. Métricas en `test-results/pdf-performance/before.json` y `after.json`.
+
+Además, el worker PDF se inicia al necesitarlo (no al abrir el estudio), y los PDF/ZIP resultantes se transfieren desde el worker sin duplicar su búfer. Cancelar sigue terminando el worker y permite reintentar con los archivos originales. La compilación autónoma conserva literalmente el JavaScript insertado en HTML.
+
+Regresión completada: 31 pruebas Node y 38 Python, seis herramientas PDF con descargas verificadas y cancelación/reintento, portada e ingreso, visor/vectorización dentro de Streamlit, las 17 herramientas creativas, conversión multimedia/documentos/imágenes y transcripción real con Whisper. La prueba de transcripción necesitó esperar a que Streamlit terminara sus recargas antes de cargar el archivo y cambiar el idioma; sin esa sincronización el automatismo podía perder la carga inicial. Con la espera explícita pasó con motor real. No se modificó el motor de reconocimiento ni el convertidor. La prueba FastAPI de interfaz usa su reconocedor simulado como antes. Estas verificaciones no confirman el despliegue público ni miden la espera al despertar Streamlit Community Cloud.
